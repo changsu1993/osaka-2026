@@ -83,6 +83,12 @@ small.src{display:block;color:var(--mute);font-size:13px;margin-top:10px}
 .btn.walkbtn{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .walker{position:fixed;inset:0;z-index:50;background:#111;color:#fff;display:none;grid-template-rows:auto minmax(0,38fr) minmax(0,62fr) auto}
 .walker.on{display:grid}
+.walker.dm{grid-template-rows:auto minmax(0,1fr) auto;grid-template-columns:1fr!important}
+#dmMap{width:100%;height:100%;background:#e8e8e8}
+.dm-list{display:flex;gap:6px;overflow-x:auto;padding:10px max(3vw,12px) max(12px,env(safe-area-inset-bottom));background:#111;scroll-snap-type:x proximity}
+.dm-list button{flex:none;scroll-snap-align:start;min-height:44px;border-radius:22px;border:1.5px solid #555;background:#222;color:#fff;font:inherit;font-size:14px;padding:0 12px 0 6px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.dm-list button b{display:inline-grid;place-items:center;min-width:26px;height:26px;border-radius:13px;background:var(--c);font-size:13px}
+.dm-iw{font:14px/1.45 "Noto Sans KR",sans-serif;color:#111;max-width:230px}.dm-iw b{font-size:15px}.dm-iw a{color:#1a56c4;margin-right:10px}
 .wk-top{display:flex;align-items:center;gap:10px;padding:10px max(3vw,12px);background:var(--c)}
 .wk-top b{flex:1;font-size:15px;line-height:1.3}
 .wk-x{min-width:44px;min-height:44px;border:0;border-radius:22px;background:rgba(255,255,255,.2);color:#fff;font-size:20px;cursor:pointer}
@@ -105,6 +111,11 @@ small.src{display:block;color:var(--mute);font-size:13px;margin-top:10px}
   </div>
 </header>
 <nav class="tabs" aria-label="일차 선택"><div class="wrap" id="tabs" role="tablist"></div></nav>
+<div class="walker dm" id="dayMap" role="dialog" aria-modal="true" aria-label="하루 전체 지도">
+  <div class="wk-top"><b id="dmTitle">하루 전체 지도</b><button class="wk-x" id="dmClose" aria-label="닫기">×</button></div>
+  <div id="dmMap"></div>
+  <div class="dm-list" id="dmList"></div>
+</div>
 <div class="walker" id="walker" role="dialog" aria-modal="true" aria-label="로드뷰 걸어보기">
   <div class="wk-top"><b id="wkTitle">걸어보기</b><button class="wk-x" id="wkClose" aria-label="닫기">×</button></div>
   <div id="wkMap"></div><div id="wkPano"></div>
@@ -258,8 +269,8 @@ function render(i){
   const all=G+'dir/'+x.stops.map(s=>nm(s[0])).join('/')+'/';
   const flow=`<ol class="flow" aria-label="오늘 순서">${x.stops.map((s,j)=>`<li><a href="#s${i}-${j}"><span class="num">${j+1}</span>${esc(P[s[0]][2].replace(/ \(.*\)$/,''))}</a></li>`).join('')}</ol>`;
   let h=`<div class="dayhead"><h2>${i+1}일차 · ${esc(x.t)}</h2><p>${esc(x.s)}</p>
-   <div class="whole"><a class="btn main" href="${all}">${I.go}하루 전체 경로 지도로 보기</a></div>
-   ${flow}<div class="legend"><span><i></i>전철</span><span><i class="w"></i>도보</span><span><i class="b"></i>투어 버스</span></div></div><ol class="route">`;
+   <div class="whole">${MAPS_KEY?`<button class="btn main daymapbtn" data-i="${i}">${I.pin}하루 전체 지도 (번호 표시)</button>`:""}<a class="btn" href="${all}">${I.go}구글맵 앱으로 열기</a></div>
+   ${flow}<div class="legend"><span><i></i>전철</span><span><i class="w"></i>도보</span><span><i class="b"></i>투어 버스</span></div><p class="note" style="margin-top:8px">하루 전체 지도에서는 도보는 실선, 전철·버스는 점선으로 표시돼요.</p></div><ol class="route">`;
   x.stops.forEach((s,j)=>{
     const [k,tm,note,leg,tip,ex]=s,p=P[k];
     const lk=a=>a&&a.length?`<p class="lk">${a.map(([t,u])=>`<a href="${u}">${esc(t)}</a>`).join(' · ')}</p>`:'';
@@ -302,7 +313,7 @@ async function walkPath(g,a,b){
     const {routes}=await Route.computeRoutes({origin:a,destination:b,travelMode:'WALKING',fields:['path']});
     if(routes&&routes[0]&&routes[0].path&&routes[0].path.length>1)return routes[0].path.map(pt);
   }catch(e){console.warn('route',e)}
-  W.msg.textContent='도보 경로를 못 받아서 두 지점을 직선으로 이었어요.';
+  if(W.el.classList.contains('on'))W.msg.textContent='도보 경로를 못 받아서 두 지점을 직선으로 이었어요.';
   return [a,b];
 }
 function sample(g,path,step){
@@ -315,7 +326,7 @@ function sample(g,path,step){
   return out;
 }
 function getPano(loc){
-  return new Promise(r=>svc.getPanorama({location:loc,radius:35,source:google.maps.StreetViewSource.OUTDOOR,preference:google.maps.StreetViewPreference.NEAREST},(d,st)=>r(st==='OK'?d:null)));
+  return new Promise(r=>svc.getPanorama({location:loc,radius:35,sources:[google.maps.StreetViewSource.GOOGLE,google.maps.StreetViewSource.OUTDOOR],preference:google.maps.StreetViewPreference.NEAREST},(d,st)=>r(st==='OK'?d:null)));
 }
 async function openWalk(a,b,na,nb){
   const run=++W.run;
@@ -364,7 +375,52 @@ W.seek.addEventListener('input',()=>{stop();show(+W.seek.value)});
 function closeWalk(){W.run++;stop();W.el.classList.remove('on');document.body.style.overflow=''}
 document.getElementById('wkClose').addEventListener('click',closeWalk);
 document.addEventListener('keydown',e=>{if(!W.el.classList.contains('on'))return;if(e.key==='Escape')closeWalk();if(e.key===' '){e.preventDefault();W.timer?stop():start()}if(e.key==='ArrowRight'){stop();show(Math.min(W.i+1,W.frames.length-1))}if(e.key==='ArrowLeft'){stop();show(Math.max(W.i-1,0))}});
-day.addEventListener('click',e=>{const f=e.target.closest('.flow a');if(f){e.preventDefault();document.getElementById(f.getAttribute('href').slice(1))?.scrollIntoView({behavior:'smooth'});return}const b=e.target.closest('.walkbtn');if(b)openWalk(b.dataset.a,b.dataset.b,b.dataset.na,b.dataset.nb)});
+
+/* ---- 하루 전체 지도 ---- */
+const DM={el:document.getElementById('dayMap'),list:document.getElementById('dmList'),title:document.getElementById('dmTitle'),map:null,objs:[],iw:null,run:0};
+async function openDayMap(i){
+  const run=++DM.run,x=DAYS[i],col=x.c;
+  DM.el.classList.add('on');document.body.style.overflow='hidden';
+  DM.title.textContent=(i+1)+'일차 · '+x.t;
+  let g;try{g=await loadMaps()}catch(e){DM.title.textContent='지도를 불러오지 못했어요';return}
+  if(!DM.map){DM.map=new g.Map(document.getElementById('dmMap'),{disableDefaultUI:true,zoomControl:true,gestureHandling:'greedy',clickableIcons:false});DM.iw=new g.InfoWindow();}
+  DM.objs.forEach(o=>o.setMap(null));DM.objs=[];DM.iw.close();
+  const pos=k=>({lat:P[k][0],lng:P[k][1]});
+  const bd=new g.LatLngBounds();x.stops.forEach(s=>bd.extend(pos(s[0])));DM.map.fitBounds(bd,50);
+  const seen={};const markers=[];
+  x.stops.forEach((s,j)=>{
+    const k=s[0];const off=seen[k]=(seen[k]||0)+1;
+    const m=new g.Marker({map:DM.map,position:pos(k),zIndex:100+j,
+      label:{text:String(j+1),color:'#fff',fontWeight:'900',fontSize:'13px'},
+      icon:{path:g.SymbolPath.CIRCLE,scale:14,fillColor:col,fillOpacity:1,strokeColor:'#fff',strokeWeight:3,labelOrigin:new g.Point(0,0),anchor:new g.Point(off>1?1.3*(off-1):0,0)}});
+    m.addListener('click',()=>pick(j));
+    DM.objs.push(m);markers.push(m);
+  });
+  function pick(j){
+    const k=x.stops[j][0],p=P[k];
+    DM.iw.setContent(`<div class="dm-iw"><b>${j+1}. ${esc(p[2])}</b><br>${esc(x.stops[j][1]||'')}<br><a href="${panoU(k)}">로드뷰</a><a href="${mapU(k)}">지도</a>${j?`<a href="${dirU(x.stops[j-1][0],k,(x.stops[j][3]||{}).m==='walk'?'walk':'transit')}">이전에서 길찾기</a>`:''}</div>`);
+    DM.iw.open({map:DM.map,anchor:markers[j]});
+    DM.map.panTo(pos(k));if(DM.map.getZoom()<15)DM.map.setZoom(15);
+  }
+  DM.list.innerHTML=x.stops.map((s,j)=>`<button data-j="${j}"><b>${j+1}</b>${esc(P[s[0]][2].replace(/ \(.*\)$/,''))}</button>`).join('');
+  DM.list.onclick=e=>{const b=e.target.closest('button');if(b)pick(+b.dataset.j)};
+  const draw=(path,mode)=>{
+    const under=new g.Polyline({map:DM.map,path,strokeColor:'#fff',strokeWeight:mode==='walk'?9:7,strokeOpacity:1,zIndex:1});
+    const over=mode==='walk'?new g.Polyline({map:DM.map,path,strokeColor:col,strokeWeight:5,strokeOpacity:1,zIndex:2})
+      :new g.Polyline({map:DM.map,path,strokeOpacity:0,zIndex:2,icons:[{icon:{path:'M 0,-1 0,1',strokeOpacity:1,strokeColor:col,strokeWeight:4,scale:3},offset:'0',repeat:'14px'}]});
+    DM.objs.push(under,over);
+  };
+  for(let j=1;j<x.stops.length;j++){
+    const a=x.stops[j-1][0],b=x.stops[j][0],m=(x.stops[j][3]||{}).m||'transit';
+    if(a===b)continue;
+    if(m==='walk'){walkPath(g,pos(a),pos(b)).then(path=>{if(run===DM.run)draw(path,'walk')});}
+    else draw([pos(a),pos(b)],m);
+  }
+}
+function closeDayMap(){DM.run++;DM.el.classList.remove('on');document.body.style.overflow=''}
+document.getElementById('dmClose').addEventListener('click',closeDayMap);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&DM.el.classList.contains('on'))closeDayMap()});
+day.addEventListener('click',e=>{const dmb=e.target.closest('.daymapbtn');if(dmb){openDayMap(+dmb.dataset.i);return}const f=e.target.closest('.flow a');if(f){e.preventDefault();document.getElementById(f.getAttribute('href').slice(1))?.scrollIntoView({behavior:'smooth'});return}const b=e.target.closest('.walkbtn');if(b)openWalk(b.dataset.a,b.dataset.b,b.dataset.na,b.dataset.nb)});
 }
 </script>
 </body>
