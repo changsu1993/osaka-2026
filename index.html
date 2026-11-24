@@ -72,6 +72,8 @@ small.src{display:block;color:var(--mute);font-size:13px;margin-top:10px}
 .steps{margin-top:8px}
 .steps summary{cursor:pointer;font-weight:700;font-size:14px;min-height:36px;display:flex;align-items:center;color:var(--c)}
 .steps ol{margin:4px 0 0;padding-left:20px}.steps li{margin:3px 0}
+.lk{margin:8px 0 0;font-size:14px;line-height:1.7}.lk a{color:var(--c);font-weight:500}
+.steps.ex{margin-top:12px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--c) 9%,var(--card))}
 .steps .warn{margin:6px 0 0;font-size:13px;color:var(--mute)}
 .tip{margin:0 0 10px;padding:8px 10px;border-left:3px solid var(--c);background:var(--card);font-size:14px;border-radius:0 8px 8px 0}
 .opts{margin:8px 0 26px;padding:16px;border-radius:16px;border:1.5px dashed var(--c)}
@@ -135,7 +137,7 @@ const P={
   hanshin:[34.6938491,135.1960454,'한신 고베산노미야역','阪神 神戸三宮駅 · 2번 승강장'],
   stay:[34.6674643,135.5081997,'닛폰바시 숙소','日本橋 1-10-15 · 긴테쓰닛폰바시역 7번 출구 도보 2분'],
   ogi:[34.7037154,135.5108915,'오기마치역','扇町駅 · 사카이스지선'],
-  tenma:[34.7072006,135.5131747,'우라텐마 초친도리','裏天満ちょうちん通り'],
+  tenma:[34.7069692,135.5131571,'우라텐마 초친도리','裏天満ちょうちん通り'],
   tsuru:[34.6692099,135.5059835,'츠루톤탄 소에몬초점 앞 (투어 집결)','つるとんたん 宗右衛門町店 · Ndaytrip 피켓'],
   fushimi:[34.9676945,135.7791876,'후시미이나리 신사','伏見稲荷大社'],
   kiyo:[34.9946662,135.784661,'청수사 (기요미즈데라)','清水寺'],
@@ -149,7 +151,7 @@ const P={
   wanaka:[34.6687742,135.5027298,'타코야키 와나카','たこ焼道楽 わなか 道頓堀'],
   ebisu:[34.6690533,135.5012996,'에비스바시','戎橋'],
   kogaryu:[34.672245,135.4977556,'아메리카무라 고가류','甲賀流 アメリカ村本店'],
-  fujimoto:[34.6698141,135.5052917,'야키니쿠 후지모토','焼肉 ふじもと'],
+  fujimoto:[34.6698141,135.5052917,'야키니쿠 후지모토 (신사이바시점)','焼肉 ふじもと · 노션에 지점 표기 없음, 도톤보리에서 가장 가까운 지점'],
   hozenji:[34.6681187,135.5026104,'호젠지요코초','法善寺横丁'],
   rikimaru:[34.6667554,135.5034718,'야키니쿠 리키마루 센니치마에점','焼肉 力丸 千日前店'],
   en:[34.6679021,135.5051472,'야키니쿠 엔 난바닛폰바시점','炭火焼肉 焔 en なんば日本橋店'],
@@ -160,7 +162,7 @@ const P={
   tennoji:[34.6473102,135.513869,'JR 덴노지역','天王寺駅'],
   harukas:[34.6463062,135.5133091,'하루카스 300 전망대','あべのハルカス · 16층 입구'],
   moegi:[34.6635815,135.5047734,'난바 모에기','お好み焼 萌木 · 難波千日前 7-2'],
-  acchichiH:[34.6431168,135.5058123,'앗치치혼포 (신세카이 쪽)','あっちち本舗'],
+  acchichiH:[34.6431168,135.5058123,'앗치치혼포 본점 (도비타신치 쪽)','あっちち本舗 本店 · 노션의 도비타신치점과 같은 곳으로 보여요'],
   tani4:[34.6821069,135.5172527,'다니마치4초메역','谷町四丁目駅'],
   otemon:[34.6850912,135.5230378,'오사카성 오테몬','大阪城 大手門'],
   castle:[34.6872571,135.5258546,'오사카성 천수각 (외관)','大阪城天守閣 · 내부 생략'],
@@ -189,7 +191,7 @@ const DAYS=[
   stops:[
    ['stay','','숙소 출발.'],
    ['tsuru','08:10','가게 앞 보도에서 ‘Ndaytrip’ 피켓 확인. 08:30 버스 출발.',
-    {m:'walk',n:'도보',steps:['숙소에서 국립분라쿠극장 앞 큰길로 이동 → 닛폰바시역 사거리 방향 직진','사거리에서 도톤보리강 방향으로 우회전 → 큰길 따라 닛폰바시 다리 건너기','다리 끝 왼편, 커다란 사각 간판 ‘つるとんたん’ 확인']}],
+    {m:'walk',n:'도보',steps:['숙소에서 국립분라쿠극장 앞 큰길로 이동 → 닛폰바시역 사거리 방향 직진','사거리에서 도톤보리강 방향으로 우회전 → 큰길 따라 닛폰바시 다리 건너기','다리 끝 왼편, 커다란 사각 간판 ‘つるとんたん’ 확인'],links:[['역 사거리부터 보는 한글 약도 (PDF)','https://www.limonbus.com/contents/wp-content/uploads/2020/06/nippombashi.K.pdf'],['방문 후기 속 가게 외관','https://shuteamjang.tistory.com/154'],['11/29 교토 투어 상품 보기','https://tour.yanolja.com/tna/products/d1c3567a-505e-4208-9093-b968ce45c8d2']]}],
    ['fushimi','','',{m:'bus',n:'투어 버스'}],
    ['kiyo','','청수사 주변에서 자유 점심.',{m:'bus',n:'투어 버스'}],
    ['kinka','','',{m:'bus',n:'투어 버스'}],
@@ -223,12 +225,12 @@ const DAYS=[
     {m:'transit',n:'닛폰바시 → 다니마치9초메 환승 → 다니마치4초메 → 도보',steps:['닛폰바시역에서 다니마치9초메로 이동 후 다니마치선 환승','다니마치4초메역 하차','오테몬 방향으로 도보']},
     '08:30까지 출발이 어렵거나 비가 오면 오사카성 생략 → 난바 야사카 신사 산책으로 대체(아래 선택).'],
    ['castle','09:40','천수각 내부는 생략, 09:40경 돌아서기. 10:30까지 닛폰바시 복귀.',{m:'walk',n:'도보'}],
-   ['bic','10:30','빅카메라 우선. 면세는 여권 지참, 같은 매장·같은 날 세전 5,000엔 이상.',{m:'transit',n:'다니마치4초메 → 닛폰바시 방면'}],
+   ['bic','10:30','빅카메라 우선. 면세는 여권 지참, 같은 매장·같은 날 세전 5,000엔 이상. 환급 순서는 마지막 고베공항 카드 참고.',{m:'transit',n:'다니마치4초메 → 닛폰바시 방면'}],
    ['naniwa','11:00','이른 점심. 11:45 짐 찾으러 출발.',{m:'walk',n:'도보'}],
    ['stay','12:00','짐 수령.',{m:'walk',n:'도보'}],
    ['kintetsu','12:20','열차 목표.',{m:'walk',n:'도보 · 7번 출구'}],
    ['kix2','14:00','13:35~13:50 고베공항역 도착 → T2. 14:00~14:10 수속, 면세품은 부치기 전에 세관 확인. 16:10 출발 → 18:15 인천.',
-    {m:'transit',n:'긴테쓰·한신 → 포트라이너 · 약 1시간 15~25분 · 940엔',steps:['긴테쓰닛폰바시역 2번 플랫폼, 오사카난바·아마가사키·고베산노미야 방면','직통이 아니면 오사카난바 또는 아마가사키에서 전광판 따라 환승','한신 고베산노미야역 ‘東口 / East Exit’ 개찰구','‘Port Liner / ポートライナー / P01’ 표지 → 행선지 ‘神戸空港 / Kobe Airport’ 확인 후 탑승','고베공항역 하차 → 제1터미널 방향 통로 → 1층','‘Free Shuttle Bus / T2’ 무료버스 또는 지붕 보행로 → T2 (약 10분)'],warn:'기타부두(北埠頭) 순환행과 혼동 주의. 환승 보행 5~7분, 캐리어 포함 10분 여유.'}]
+    {m:'transit',n:'긴테쓰·한신 → 포트라이너 · 약 1시간 15~25분 · 940엔',steps:['긴테쓰닛폰바시역 2번 플랫폼, 오사카난바·아마가사키·고베산노미야 방면','직통이 아니면 오사카난바 또는 아마가사키에서 전광판 따라 환승','한신 고베산노미야역 ‘東口 / East Exit’ 개찰구','‘Port Liner / ポートライナー / P01’ 표지 → 행선지 ‘神戸空港 / Kobe Airport’ 확인 후 탑승','고베공항역 하차 → 제1터미널 방향 통로 → 1층','‘Free Shuttle Bus / T2’ 무료버스 또는 지붕 보행로 → T2 (약 10분)'],warn:'기타부두(北埠頭) 순환행과 혼동 주의. 환승 보행 5~7분, 캐리어 포함 10분 여유.'},'',{h:'면세 환급 (택스리펀) 순서',steps:['결제할 때 본인 여권 제시하고 면세 요청. 같은 매장·같은 날 1인 세전 5,000엔 이상이면 세금 포함 금액으로 결제. 빅카메라와 에디온은 각각 계산.','매장을 나오기 전 계산대에서 면세 처리 완료 확인. 별도 면세 창구를 안내받으면 영수증과 여권을 들고 방문. 면세 서류·QR과 영수증 보관.','쇼핑 직후 면세 서류나 영수증의 QR 스캔 → 환급사 웹·앱에서 정보와 환급 수단 등록 → 매장명·날짜·구매 내역 대조.','고베공항 T2 1층, 짐을 부치기 전 TAX REFUND 단말기에서 각자 여권 스캔. 초록이면 세관 확인 완료, 빨강이면 여권과 구매품을 들고 검사대로 간 뒤 짐 부치기.','귀국 후 등록한 방법으로 환급. 대기 상태면 영수증 보관하고 환급사 진행 내역 확인. 수수료·입금일은 환급사별로 달라요.'],warn:'내역이 안 뜨면 여권 영문명과 입국일(11/28) 확인 → 계속 누락되면 영수증 들고 매장에 면세 등록 여부 확인. 제휴 매장에서 현금 수령 방식을 골랐다면 출국심사 후 현금 환급 단말기 이용.',links:[['일본 세관 안내','https://www.customs.go.jp/kaigairyoko/taxrefund.htm'],['공항 단말기 지도 (UKB)','https://www.customs.go.jp/kaigairyoko/taxrefund/map_CHECK.htm']]}]
   ],
   opts:{h:'시간 남거나 대안',p:'시간이 남으면 에디온 추가. 오사카성을 쉬면 야사카 신사(09:00~10:00) 또는 09:00 가정식 → 10:00 에디온 → 빅카메라. 두 곳 모두 넣지 않기.',k:['edion','yasaka']}}
 ];
@@ -236,7 +238,7 @@ const MAPS_KEY='AIzaSyAxpuGo-cc7EUKWBMl9dv4HSK6PeZASx9E';
 const ll=k=>P[k][0]+','+P[k][1];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const G='https://www.google.com/maps/';
-const Q={kix2:'神戸空港 第2ターミナル',snLocker:'JR三ノ宮駅 東口',steak:'ステーキランド神戸館',hanshin:'阪神 神戸三宮駅',stay:'〒542-0073 大阪府大阪市中央区日本橋1丁目10-15 冨士ハイツ',ogi:'扇町駅 大阪メトロ',tenma:'裏天満',tsuru:'つるとんたん 宗右衛門町店',fushimi:'伏見稲荷大社',kiyo:'清水寺',kinka:'金閣寺',arashi:'渡月橋',doton:'ドトンプラザ 大阪',satsuma:'らーめん 薩摩っ子 道頓堀',acchichi:'あっちち本舗 道頓堀店',donki:'ドン・キホーテ 道頓堀店',glico:'グリコサイン 道頓堀',wanaka:'たこ焼道楽 わなか 道頓堀',ebisu:'戎橋 大阪',kogaryu:'甲賀流 アメリカ村本店',fujimoto:'焼肉 ふじもと 心斎橋店',hozenji:'法善寺横丁',rikimaru:'焼肉 力丸 千日前店',en:'炭火焼肉 焔 en なんば日本橋店',kintetsu:'近鉄日本橋駅',usj:'ユニバーサル・スタジオ・ジャパン',ucity:'ユニバーサルシティ駅',nishikujo:'西九条駅',tennoji:'JR天王寺駅',harukas:'ハルカス300 展望台',moegi:'お好み焼 萌木 難波',acchichiH:'あっちち本舗 本店',tani4:'谷町四丁目駅',otemon:'大阪城 大手門',castle:'大阪城天守閣',bic:'ビックカメラ なんば店',naniwa:'なにわ日本橋食堂',edion:'エディオン なんば本店',yasaka:'難波八阪神社'};
+const Q={kix2:'神戸空港 第2ターミナル',snLocker:'JR三ノ宮駅 東口',steak:'ステーキランド神戸館',hanshin:'阪神 神戸三宮駅',stay:'〒542-0073 大阪府大阪市中央区日本橋1丁目10-15 冨士ハイツ',ogi:'扇町駅 大阪メトロ',tenma:'裏天満ちょうちん通り',tsuru:'つるとんたん 宗右衛門町店',fushimi:'伏見稲荷大社',kiyo:'清水寺',kinka:'金閣寺',arashi:'渡月橋',doton:'ドトンプラザ 大阪',satsuma:'らーめん 薩摩っ子 道頓堀',acchichi:'あっちち本舗 道頓堀店',donki:'ドン・キホーテ 道頓堀店',glico:'グリコサイン 道頓堀',wanaka:'たこ焼道楽 わなか 道頓堀',ebisu:'戎橋 大阪',kogaryu:'甲賀流 アメリカ村本店',fujimoto:'焼肉 ふじもと 心斎橋店',hozenji:'法善寺横丁',rikimaru:'焼肉 力丸 千日前店',en:'炭火焼肉 焔 en なんば日本橋店',kintetsu:'近鉄日本橋駅',usj:'ユニバーサル・スタジオ・ジャパン',ucity:'ユニバーサルシティ駅',nishikujo:'西九条駅',tennoji:'JR天王寺駅',harukas:'ハルカス300 展望台',moegi:'お好み焼 萌木 難波',acchichiH:'あっちち本舗 本店',tani4:'谷町四丁目駅',otemon:'大阪城 大手門',castle:'大阪城天守閣',bic:'ビックカメラ なんば店',naniwa:'なにわ日本橋食堂',edion:'エディオン なんば本店',yasaka:'難波八阪神社'};
 const nm=k=>encodeURIComponent(Q[k]||ll(k));
 const mapU=k=>G+'search/'+nm(k)+'/@'+ll(k)+',17z';
 const panoU=k=>G+'@?api=1&map_action=pano&viewpoint='+ll(k);
@@ -259,14 +261,16 @@ function render(i){
    <div class="whole"><a class="btn main" href="${all}">${I.go}하루 전체 경로 지도로 보기</a></div>
    ${flow}<div class="legend"><span><i></i>전철</span><span><i class="w"></i>도보</span><span><i class="b"></i>투어 버스</span></div></div><ol class="route">`;
   x.stops.forEach((s,j)=>{
-    const [k,tm,note,leg,tip]=s,p=P[k];
+    const [k,tm,note,leg,tip,ex]=s,p=P[k];
+    const lk=a=>a&&a.length?`<p class="lk">${a.map(([t,u])=>`<a href="${u}">${esc(t)}</a>`).join(' · ')}</p>`:'';
     if(leg){const prev=x.stops[j-1][0];
       const st=leg.steps?`<details class="steps"><summary>단계별 안내 (${leg.steps.length})</summary><ol>${leg.steps.map(t=>`<li>${esc(t)}</li>`).join('')}</ol>${leg.warn?`<p class="warn">${esc(leg.warn)}</p>`:''}</details>`:'';
+      const st2=st+lk(leg.links);
       h+=`<li class="leg ${leg.m}"><span></span><span class="rail"></span><div class="legcard"><b>${esc(leg.n)}</b><br><span class="num">${j}</span>${esc(P[prev][2])} → <span class="num">${j+1}</span>${esc(p[2])}
-       ${leg.m==='bus'?'':`<div class="btns">${leg.m==='walk'&&MAPS_KEY?`<button class="btn walkbtn" data-a="${prev}" data-b="${k}" data-na="${j}" data-nb="${j+1}">▶ 걸어보기</button>`:''}<a class="btn" href="${dirU(prev,k,leg.m)}">${I.go}${leg.m==='walk'?'도보 길찾기':'대중교통 길찾기'}</a></div>`}${st}</div></li>`;}
+       ${leg.m==='bus'?'':`<div class="btns">${leg.m==='walk'&&MAPS_KEY?`<button class="btn walkbtn" data-a="${prev}" data-b="${k}" data-na="${j}" data-nb="${j+1}">▶ 걸어보기</button>`:''}<a class="btn" href="${dirU(prev,k,leg.m)}">${I.go}${leg.m==='walk'?'도보 길찾기':'대중교통 길찾기'}</a></div>`}${st2}</div></li>`;}
     h+=`<li class="stop" id="s${i}-${j}"><span class="time">${esc(tm)}</span><span class="rail"><span class="dot">${j+1}</span></span><div class="body">
       <h3>${esc(p[2])}</h3><div class="jp">${esc(p[3])}</div>${note?`<p class="note">${esc(note)}</p>`:'<p class="note"></p>'}
-      ${tip?`<p class="tip">${esc(tip)}</p>`:''}${btns(k)}</div></li>`;
+      ${tip?`<p class="tip">${esc(tip)}</p>`:''}${btns(k)}${ex?`<details class="steps ex"><summary>${esc(ex.h)}</summary><ol>${ex.steps.map(t=>`<li>${esc(t)}</li>`).join('')}</ol>${ex.warn?`<p class="warn">${esc(ex.warn)}</p>`:''}${lk(ex.links)}</details>`:''}</div></li>`;
   });
   h+='</ol>';
   if(x.opts){h+=`<section class="opts"><h3>선택 · ${esc(x.opts.h)}</h3><p>${esc(x.opts.p)}</p>${x.opts.k.map(k=>`<div class="opt"><div><b>${esc(P[k][2])}</b><span>${esc(P[k][3])}</span></div>${btns(k)}</div>`).join('')}</section>`;}
