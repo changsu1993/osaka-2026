@@ -236,9 +236,9 @@ const MAPS_KEY='AIzaSyAxpuGo-cc7EUKWBMl9dv4HSK6PeZASx9E';
 const ll=k=>P[k][0]+','+P[k][1];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const G='https://www.google.com/maps/';
-const Q={kix2:'神戸空港 第2ターミナル',snLocker:'JR三ノ宮駅 東口',steak:'ステーキランド神戸館',hanshin:'阪神 神戸三宮駅',stay:'大阪府大阪市中央区日本橋1-10-15',ogi:'扇町駅 大阪メトロ',tenma:'裏天満',tsuru:'つるとんたん 宗右衛門町店',fushimi:'伏見稲荷大社',kiyo:'清水寺',kinka:'金閣寺',arashi:'渡月橋',doton:'ドトンプラザ 大阪',satsuma:'らーめん 薩摩っ子 道頓堀',acchichi:'あっちち本舗 道頓堀店',donki:'ドン・キホーテ 道頓堀店',glico:'グリコサイン 道頓堀',wanaka:'たこ焼道楽 わなか 道頓堀',ebisu:'戎橋 大阪',kogaryu:'甲賀流 アメリカ村本店',fujimoto:'焼肉 ふじもと 心斎橋店',hozenji:'法善寺横丁',rikimaru:'焼肉 力丸 千日前店',en:'炭火焼肉 焔 en なんば日本橋店',kintetsu:'近鉄日本橋駅',usj:'ユニバーサル・スタジオ・ジャパン',ucity:'ユニバーサルシティ駅',nishikujo:'西九条駅',tennoji:'JR天王寺駅',harukas:'ハルカス300 展望台',moegi:'お好み焼 萌木 難波',acchichiH:'あっちち本舗 本店',tani4:'谷町四丁目駅',otemon:'大阪城 大手門',castle:'大阪城天守閣',bic:'ビックカメラ なんば店',naniwa:'なにわ日本橋食堂',edion:'エディオン なんば本店',yasaka:'難波八阪神社'};
+const Q={kix2:'神戸空港 第2ターミナル',snLocker:'JR三ノ宮駅 東口',steak:'ステーキランド神戸館',hanshin:'阪神 神戸三宮駅',stay:'〒542-0073 大阪府大阪市中央区日本橋1丁目10-15 冨士ハイツ',ogi:'扇町駅 大阪メトロ',tenma:'裏天満',tsuru:'つるとんたん 宗右衛門町店',fushimi:'伏見稲荷大社',kiyo:'清水寺',kinka:'金閣寺',arashi:'渡月橋',doton:'ドトンプラザ 大阪',satsuma:'らーめん 薩摩っ子 道頓堀',acchichi:'あっちち本舗 道頓堀店',donki:'ドン・キホーテ 道頓堀店',glico:'グリコサイン 道頓堀',wanaka:'たこ焼道楽 わなか 道頓堀',ebisu:'戎橋 大阪',kogaryu:'甲賀流 アメリカ村本店',fujimoto:'焼肉 ふじもと 心斎橋店',hozenji:'法善寺横丁',rikimaru:'焼肉 力丸 千日前店',en:'炭火焼肉 焔 en なんば日本橋店',kintetsu:'近鉄日本橋駅',usj:'ユニバーサル・スタジオ・ジャパン',ucity:'ユニバーサルシティ駅',nishikujo:'西九条駅',tennoji:'JR天王寺駅',harukas:'ハルカス300 展望台',moegi:'お好み焼 萌木 難波',acchichiH:'あっちち本舗 本店',tani4:'谷町四丁目駅',otemon:'大阪城 大手門',castle:'大阪城天守閣',bic:'ビックカメラ なんば店',naniwa:'なにわ日本橋食堂',edion:'エディオン なんば本店',yasaka:'難波八阪神社'};
 const nm=k=>encodeURIComponent(Q[k]||ll(k));
-const mapU=k=>G+'search/?api=1&query='+nm(k);
+const mapU=k=>G+'search/'+nm(k)+'/@'+ll(k)+',17z';
 const panoU=k=>G+'@?api=1&map_action=pano&viewpoint='+ll(k);
 const dirU=(a,b,m)=>G+'dir/?api=1&origin='+nm(a)+'&destination='+nm(b)+'&travelmode='+(m==='walk'?'walking':'transit');
 const I={
