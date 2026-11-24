@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오사카 동선 따라가기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+/* VOICE: 친구끼리 들고 다니는 여행 승차권, 빠르고 명확하게
+   IDEA: 일본 철도 노선도: 하루가 하나의 노선이고 장소는 역
+   PICTURE: 왼쪽 레일에 역 점과 구간(도보 점선, 전철 실선, 버스 이중선)
+   COLOUR and TYPE: 흰 바탕과 먹색, 도리이 주홍을 주색으로, 일차별 노선색. Noto Sans KR
+   LAYOUT: 상단 일차 탭, 아래로 역 목록과 구간 카드, 한 칼럼 */
+:root{color-scheme:light dark;--bg:light-dark(#fbfaf7,#141312);--card:light-dark(#fff,#1e1d1b);--ink:light-dark(#191714,#f1eee8);--mute:light-dark(#6b665e,#a59f95);--line:light-dark(#e6e2da,#34312d);--red:#d6402b;--c:var(--red)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip}
+a{color:inherit}
+.wrap{max-width:720px;margin:0 auto;padding:0 max(4vw,16px)}
+header{background:var(--red);color:#fff;padding:28px 0 22px}
+header h1{font-size:clamp(30px,7vw,44px);line-height:1.05;margin:0 0 8px;font-weight:900;text-wrap:balance}
+header p{margin:0;opacity:.92;font-size:15px}
+.tabs{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.tabs .wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding-block:10px}
+.tabs button{min-height:52px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;font:inherit;font-size:13px;line-height:1.2;cursor:pointer;padding:4px}
+.tabs button b{display:block;font-size:16px}
+.tabs button[aria-selected=true]{background:var(--c);border-color:var(--c);color:#fff}
+.tabs button:focus-visible,.btn:focus-visible,.top a:focus-visible{outline:3px solid var(--c);outline-offset:2px}
+.dayhead{padding:22px 0 6px}
+.dayhead h2{font-size:24px;line-height:1.2;margin:0 0 6px;text-wrap:balance}
+.dayhead p{margin:0 0 14px;color:var(--mute);font-size:15px}
+.whole{display:flex;flex-wrap:wrap;gap:8px}
+.route{list-style:none;margin:18px 0 0;padding:0}
+.stop{display:grid;grid-template-columns:58px 28px minmax(0,1fr);column-gap:8px}
+.time{font-weight:700;font-size:15px;text-align:right;padding-top:14px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rail{position:relative;display:flex;justify-content:center}
+.rail::before{content:"";position:absolute;top:0;bottom:0;width:6px;background:var(--c)}
+.stop:first-child .rail::before{top:20px}.stop:last-child .rail::before{bottom:calc(100% - 20px)}
+.dot{position:relative;margin-top:12px;width:22px;height:22px;border-radius:50%;background:var(--card);border:5px solid var(--c)}
+.body{padding:10px 0 16px}
+.body h3{margin:0;font-size:18px;line-height:1.3}
+.body .jp{color:var(--mute);font-size:13px}
+.body .note{margin:4px 0 10px;font-size:15px;color:var(--mute)}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+.btn{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:22px;border:1.5px solid var(--line);background:var(--card);text-decoration:none;font-size:14px;font-weight:500;white-space:nowrap}
+.btn.main{background:var(--c);border-color:var(--c);color:#fff}
+.btn svg{width:16px;height:16px;flex:none}
+.leg{display:grid;grid-template-columns:58px 28px minmax(0,1fr);column-gap:8px}
+.leg .rail::before{width:0;background:none;border-left:6px solid var(--c)}
+.leg.walk .rail::before{border-left:6px dotted var(--c)}
+.leg.bus .rail::before{width:4px;border-left-style:solid;border-left:3px solid var(--c);border-right:3px solid var(--c)}
+.legcard{margin:2px 0 10px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--c) 9%,var(--card));font-size:14px}
+.legcard b{font-size:13px;color:var(--c)}
+.legcard .btns{margin-top:8px}
+.help{margin:28px 0 40px;padding:18px;border-radius:16px;background:var(--card);border:1px solid var(--line);font-size:15px}
+.help h3{margin:0 0 8px;font-size:17px}
+.help ol{margin:0;padding-left:20px}.help li{margin:4px 0}
+.top{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.top a{color:#fff;border:1.5px solid rgba(255,255,255,.7);border-radius:22px;padding:10px 14px;text-decoration:none;font-size:14px;min-height:44px;display:inline-flex;align-items:center}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--mute);margin-top:12px}
+.legend i{display:inline-block;width:22px;height:0;vertical-align:middle;margin-right:5px;border-top:4px solid var(--c)}
+.legend .w{border-top-style:dotted}.legend .b{border-top:4px double var(--c)}
+small.src{display:block;color:var(--mute);font-size:13px;margin-top:10px}
+@media(prefers-reduced-motion:no-preference){.route{animation:in .35s ease-out}@keyframes in{from{opacity:0;transform:translateY(6px)}}}
+@media(max-width:400px){.stop,.leg{grid-template-columns:46px 24px minmax(0,1fr)}.time{font-size:13px}}
+.steps{margin-top:8px}
+.steps summary{cursor:pointer;font-weight:700;font-size:14px;min-height:36px;display:flex;align-items:center;color:var(--c)}
+.steps ol{margin:4px 0 0;padding-left:20px}.steps li{margin:3px 0}
+.steps .warn{margin:6px 0 0;font-size:13px;color:var(--mute)}
+.tip{margin:0 0 10px;padding:8px 10px;border-left:3px solid var(--c);background:var(--card);font-size:14px;border-radius:0 8px 8px 0}
+.opts{margin:8px 0 26px;padding:16px;border-radius:16px;border:1.5px dashed var(--c)}
+.opts h3{margin:0 0 4px;font-size:17px}.opts>p{margin:0 0 10px;color:var(--mute);font-size:14px}
+.opt{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;padding:10px 0;border-top:1px solid var(--line)}
+.opt b{display:block;font-size:16px}.opt span{color:var(--mute);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>오사카 동선 따라가기</h1>
+    <p>11.28(토) – 12.1(화) · 오사카·고베·교토 3박 4일</p>
+    <div class="top">
+      <a href="https://maps.app.goo.gl/VQqLHAKXDUpSJUyh8">순주가 저장한 맛집·쇼핑 지도</a>
+    </div>
+  </div>
+</header>
+<nav class="tabs" aria-label="일차 선택"><div class="wrap" id="tabs" role="tablist"></div></nav>
+<main class="wrap">
+  <section id="day"></section>
+  <div class="help">
+    <h3>실제 길처럼 미리 보는 법</h3>
+    <ol>
+      <li><b>로드뷰</b>를 누르면 그 장소의 거리 사진이 열려요. 화살표를 눌러 앞으로 걸어가 볼 수 있어요.</li>
+      <li>구간 카드의 <b>길찾기</b>를 누르면 이전 장소에서 여기까지 경로가 구글맵 앱으로 열려요. <b>단계별 안내</b>를 펼치면 노션에 적어둔 표지·출구 안내가 그대로 나와요.</li>
+      <li>도보 경로에서 <b>라이브 뷰</b>를 누르면 카메라 화면 위에 화살표가 떠서, 현장에서 실제 길을 보며 따라갈 수 있어요.</li>
+      <li>PC에서는 경로 화면 왼쪽 단계 목록의 각 구간을 누르면 해당 지점 거리 사진이 나와요.</li>
+    </ol>
+    <small class="src">노션 「OSAKA 2026 여행 플래너」 기준. 역 안·지하상가·사원 경내는 거리 사진이 없거나 사용자 사진으로 보일 수 있어요. 열차·셔틀 시각은 당일 전광판 우선.</small>
+  </div>
+</main>
+<script>
+{
+const P={
+  kix2:[34.6377902,135.2265001,'고베공항 제2터미널','神戸空港 第2ターミナル'],
+  snLocker:[34.6948726,135.1948083,'JR 산노미야역 동쪽 출구 라커','JR三ノ宮駅 東口 · 1층'],
+  steak:[34.6930016,135.1917353,'스테이크랜드 고베관','ステーキランド神戸館 · 三宮興業ビル 6F'],
+  hanshin:[34.6938491,135.1960454,'한신 고베산노미야역','阪神 神戸三宮駅 · 2번 승강장'],
+  stay:[34.6674643,135.5081997,'닛폰바시 숙소','日本橋 1-10-15 · 긴테쓰닛폰바시역 7번 출구 도보 2분'],
+  ogi:[34.7037154,135.5108915,'오기마치역','扇町駅 · 사카이스지선'],
+  tenma:[34.7072006,135.5131747,'우라텐마 초친도리','裏天満ちょうちん通り'],
+  tsuru:[34.6692099,135.5059835,'츠루톤탄 소에몬초점 앞 (투어 집결)','つるとんたん 宗右衛門町店 · Ndaytrip 피켓'],
+  fushimi:[34.9676945,135.7791876,'후시미이나리 신사','伏見稲荷大社'],
+  kiyo:[34.9946662,135.784661,'청수사 (기요미즈데라)','清水寺'],
+  kinka:[35.03937,135.7292431,'금각사','金閣寺'],
+  arashi:[35.0128769,135.6777748,'아라시야마 · 도게츠교','嵐山 渡月橋'],
+  doton:[34.6697247,135.5066364,'도톤플라자 (하차)','ドトンプラザ'],
+  satsuma:[34.6688443,135.506325,'라멘 사츠마','らーめん 薩摩っ子'],
+  acchichi:[34.6692402,135.5031992,'앗치치혼포 도톤보리점','あっちち本舗 道頓堀店'],
+  donki:[34.6692979,135.5026443,'돈키호테 도톤보리점','ドン・キホーテ 道頓堀店'],
+  glico:[34.6689189,135.5010687,'글리코상','グリコサイン · 戎橋'],
+  wanaka:[34.6687742,135.5027298,'타코야키 와나카','たこ焼道楽 わなか 道頓堀'],
+  ebisu:[34.6690533,135.5012996,'에비스바시','戎橋'],
+  kogaryu:[34.672245,135.4977556,'아메리카무라 고가류','甲賀流 アメリカ村本店'],
+  fujimoto:[34.6698141,135.5052917,'야키니쿠 후지모토','焼肉 ふじもと'],
+  hozenji:[34.6681187,135.5026104,'호젠지요코초','法善寺横丁'],
+  rikimaru:[34.6667554,135.5034718,'야키니쿠 리키마루 센니치마에점','焼肉 力丸 千日前店'],
+  en:[34.6679021,135.5051472,'야키니쿠 엔 난바닛폰바시점','炭火焼肉 焔 en なんば日本橋店'],
+  kintetsu:[34.6671526,135.5061054,'긴테쓰닛폰바시역','近鉄日本橋駅'],
+  usj:[34.6656768,135.4323185,'유니버설 스튜디오 재팬','USJ 정문'],
+  ucity:[34.6679962,135.4385969,'유니버설시티역','ユニバーサルシティ駅'],
+  nishikujo:[34.6821426,135.4661491,'니시쿠조역','西九条駅'],
+  tennoji:[34.6473102,135.513869,'JR 덴노지역','天王寺駅'],
+  harukas:[34.6463062,135.5133091,'하루카스 300 전망대','あべのハルカス · 16층 입구'],
+  moegi:[34.6635815,135.5047734,'난바 모에기','お好み焼 萌木 · 難波千日前 7-2'],
+  acchichiH:[34.6431168,135.5058123,'앗치치혼포 (신세카이 쪽)','あっちち本舗'],
+  tani4:[34.6821069,135.5172527,'다니마치4초메역','谷町四丁目駅'],
+  otemon:[34.6850912,135.5230378,'오사카성 오테몬','大阪城 大手門'],
+  castle:[34.6872571,135.5258546,'오사카성 천수각 (외관)','大阪城天守閣 · 내부 생략'],
+  bic:[34.6666726,135.5025827,'빅카메라 난바점','ビックカメラ なんば店'],
+  naniwa:[34.6667074,135.5067849,'나니와 닛폰바시 식당','まいどおおきに食堂 なにわ日本橋食堂'],
+  edion:[34.6652616,135.5018049,'에디온 난바 본점','エディオン なんば本店'],
+  yasaka:[34.6615592,135.4967039,'난바 야사카 신사','難波八阪神社 · 06:00~17:00 무료']
+};
+const DAYS=[
+ {d:'11/28',w:'토',c:'#d6402b',t:'고베규 → 숙소 → 텐마 술골목',s:'짐은 ② 산노미야 라커에 보관 → ④ 식사 후 같은 라커에서 수령 → ⑤ 숙소에 두고 텐마로.',
+  stops:[
+   ['kix2','15:10','13:35 인천 T1 출발 → 15:10 고베 T2 도착. 입국·수하물 수령.'],
+   ['snLocker','','포트라이너로 올라가는 에스컬레이터 오른쪽 라커. 24인치 캐리어는 중형부터 대보고 필요하면 대형. 라커 번호 사진 찍기.',
+    {m:'transit',n:'T2→T1 도보/무료버스 + 포트라이너 · 약 30~40분 · 340엔',steps:['T2 1층 도착로비에서 ‘Port Liner / T1’ 표지 확인','T2 출구 바닥의 T1 화살표 → 오른쪽, 지붕 있는 보행로를 따라 T1 방향 직진 (도보 약 10분 또는 무료버스)','‘포트라이너 연결구’ 표지 → 초록색 ‘Terminal 1’ 표지 → 포트라이너 고베공항역','T1 2층 고베공항역에서 ICOCA 구매·충전 → 산노미야행 탑승 (약 18분)'],warn:'버스 대안: T2 → 산노미야 마린에어 셔틀 340엔, 시간표는 공식 안내 확인.'}],
+   ['steak','17:00','三宮興業ビル 6층. 입국·대기에 따라 조정.',{m:'walk',n:'도보'}],
+   ['hanshin','','같은 라커에서 짐 찾고 한신선으로.',
+    {m:'walk',n:'도보 · 라커 경유 · 환승 보행 약 5~7분',steps:['JR 산노미야역 동쪽 출구 1층 라커에서 캐리어 수령','초록색 ‘Port Liner / P01 / Kobe Airport’ 표지는 따라가지 말고 ‘阪神電車 / Hanshin Line / 阪神(東口)’ 표지 따라가기','한신 고베산노미야역 동쪽 개찰구 → 2번 승강장 ‘大阪難波・近鉄奈良’ 방면 확인'],warn:'역 공사나 임시 통로가 있으면 현장 표지 우선.'}],
+   ['stay','','체크인 후 캐리어 두고 텐마로 출발.',
+    {m:'transit',n:'한신·긴테쓰선 · 약 50~60분 · 약 600엔',steps:['近鉄奈良행 쾌속급행은 긴테쓰닛폰바시까지 직통','大阪難波 종착이면 오사카난바에서 나라 방면 열차로 1정거장 환승','긴테쓰닛폰바시역 하차 → Osaka Metro 연결 통로에서 ‘7번 출구 / 国立文楽劇場’ 표지','7번 출구(계단)로 지상 → 숙소까지 도보 약 2분'],warn:'7번 출구는 계단이에요. 캐리어가 무거우면 역무원에게 엘리베이터 출구 확인.'}],
+   ['ogi','','',{m:'transit',n:'사카이스지선 닛폰바시역 → 오기마치역'}],
+   ['tenma','20:00','JR 텐마역을 지나 초친도리에서 한잔.',{m:'walk',n:'도보'}],
+   ['stay','','',{m:'transit',n:'오기마치역 → 사카이스지선 닛폰바시역 → 숙소'}]
+  ],
+  opts:null},
+ {d:'11/29',w:'일',c:'#2f7d4f',t:'교토 버스 투어 → 도톤보리 저녁',s:'08:10 집결 · 08:30 버스 출발. 청수사·금각사 입장료(각 900엔)는 각자 현장 결제.',
+  stops:[
+   ['stay','','숙소 출발.'],
+   ['tsuru','08:10','가게 앞 보도에서 ‘Ndaytrip’ 피켓 확인. 08:30 버스 출발.',
+    {m:'walk',n:'도보',steps:['숙소에서 국립분라쿠극장 앞 큰길로 이동 → 닛폰바시역 사거리 방향 직진','사거리에서 도톤보리강 방향으로 우회전 → 큰길 따라 닛폰바시 다리 건너기','다리 끝 왼편, 커다란 사각 간판 ‘つるとんたん’ 확인']}],
+   ['fushimi','','',{m:'bus',n:'투어 버스'}],
+   ['kiyo','','청수사 주변에서 자유 점심.',{m:'bus',n:'투어 버스'}],
+   ['kinka','','',{m:'bus',n:'투어 버스'}],
+   ['arashi','','간식은 아라시야마에서.',{m:'bus',n:'투어 버스'}],
+   ['doton','19:00','하차 예정.',{m:'bus',n:'투어 버스 · 오사카 복귀'}],
+   ['satsuma','','',{m:'walk',n:'도보'}],
+   ['acchichi','','타코야키는 세 명이 한 판씩 나눠 먹기.',{m:'walk',n:'도보'}],
+   ['donki','','도톤보리점·미도스지점 중 한 곳만.',{m:'walk',n:'도보'}],
+   ['glico','','',{m:'walk',n:'도보'}],
+   ['wanaka','','',{m:'walk',n:'도보'}],
+   ['stay','','',{m:'walk',n:'도보'}]
+  ],
+  opts:{h:'더 걷거나 2차 갈 때',p:'더 걷고 싶으면 에비스바시 → 고가류 → 후지모토 → 숙소. 숙소 쪽 2차는 호젠지요코초 → 리키마루 또는 엔.',k:['ebisu','kogaryu','fujimoto','hozenji','rikimaru','en']}},
+ {d:'11/30',w:'월',c:'#2a5bd7',t:'USJ → 하루카스 야경(선택) → 난바 저녁',s:'06:30 기상 · 07:00 숙소 출발. 18:00 퇴장하면 하루카스, 더 놀면 모에기로 바로.',
+  stops:[
+   ['stay','07:00','숙소 출발.'],
+   ['usj','07:40','입장 대기. 입장 직후 공식 앱에서 닌텐도 월드 입장 시간 확인. 11:00 전후 이른 점심 → 지정 시간에 닌텐도 월드 → 마리오카트.',
+    {m:'transit',n:'긴테쓰닛폰바시 → 니시쿠조 → 유니버설시티 · 약 26~35분 · 420엔',steps:['긴테쓰닛폰바시역 표지 확인 → 아래층 긴테쓰선, 2번 플랫폼','오사카난바·니시쿠조·고베산노미야(아마가사키) 방면 열차 탑승 → 니시쿠조 하차','‘JR선 환승’ 표지 따라 개찰구 밖 → JR 니시쿠조역','노란색 ‘UNIVERSAL STUDIOS JAPAN / JR선’ 표지 → 전광판에서 ‘JRゆめ咲線·ユニバーサルシティ’ 승강장 확인(2·3·4번 중)','유니버설시티역 개찰구(1곳) 나와 왼쪽 → 시티워크 → USJ 정문'],warn:'표지 키워드: ‘JRゆめ咲線’=유메사키선 / ‘Universal-city’=유니버설시티 / ‘桜島’=사쿠라지마. 승강장은 당일 전광판 우선.'},
+    'USJ 앱 · 스튜디오 패스 QR 3장을 한 사람 앱에 등록. 바우처에 닌텐도 월드 지정 시간이 있으면 그걸 우선, 없으면 앱 → e정리권 → 에어리어 입장 정리권 → SUPER NINTENDO WORLD, 셋 다 같은 시간으로 받고 각자 캡처.'],
+   ['harukas','19:00','18:00 퇴장 시 19:00~20:00 야경. 당일 2,200엔 / 전날까지 웹 사전권 1,980엔. 입장 21:30까지.',
+    {m:'transit',n:'유니버설시티 → 니시쿠조 → JR 덴노지',steps:['유니버설시티역 → JR유메사키선 니시쿠조','니시쿠조에서 JR선으로 덴노지 방면','JR 덴노지역에서 하루카스 16층 입구로']}],
+   ['moegi','','오코노미야키와 야키소바 나눠 먹기. 마지막 주문 23:00.',
+    {m:'transit',n:'덴노지역 → 미도스지선 → 난바'}],
+   ['stay','','',{m:'walk',n:'도보'}]
+  ],
+  opts:{h:'여유 있으면',p:'신세카이까지 걸을 여유가 있으면 앗치치혼포. 난바 2차는 전날 못 간 엔·리키마루 또는 도톤보리 타코야키.',k:['acchichiH','en','rikimaru','wanaka']}},
+ {d:'12/1',w:'화',c:'#8a4fc4',t:'오사카성 → 난바 쇼핑 → 고베공항',s:'07:15 아침·체크아웃 준비 → 짐 보관. 12:00 짐 수령, 12:20 열차, 14:00~14:10 T2 수속.',
+  stops:[
+   ['stay','07:15','짐은 호스트에게 맡기거나 닛폰바시·난바 보관함.'],
+   ['otemon','08:00','오테몬 방향으로 오사카성 공원 입장.',
+    {m:'transit',n:'닛폰바시 → 다니마치9초메 환승 → 다니마치4초메 → 도보',steps:['닛폰바시역에서 다니마치9초메로 이동 후 다니마치선 환승','다니마치4초메역 하차','오테몬 방향으로 도보']},
+    '08:30까지 출발이 어렵거나 비가 오면 오사카성 생략 → 난바 야사카 신사 산책으로 대체(아래 선택).'],
+   ['castle','09:40','천수각 내부는 생략, 09:40경 돌아서기. 10:30까지 닛폰바시 복귀.',{m:'walk',n:'도보'}],
+   ['bic','10:30','빅카메라 우선. 면세는 여권 지참, 같은 매장·같은 날 세전 5,000엔 이상.',{m:'transit',n:'다니마치4초메 → 닛폰바시 방면'}],
+   ['naniwa','11:00','이른 점심. 11:45 짐 찾으러 출발.',{m:'walk',n:'도보'}],
+   ['stay','12:00','짐 수령.',{m:'walk',n:'도보'}],
+   ['kintetsu','12:20','열차 목표.',{m:'walk',n:'도보 · 7번 출구'}],
+   ['kix2','14:00','13:35~13:50 고베공항역 도착 → T2. 14:00~14:10 수속, 면세품은 부치기 전에 세관 확인. 16:10 출발 → 18:15 인천.',
+    {m:'transit',n:'긴테쓰·한신 → 포트라이너 · 약 1시간 15~25분 · 940엔',steps:['긴테쓰닛폰바시역 2번 플랫폼, 오사카난바·아마가사키·고베산노미야 방면','직통이 아니면 오사카난바 또는 아마가사키에서 전광판 따라 환승','한신 고베산노미야역 ‘東口 / East Exit’ 개찰구','‘Port Liner / ポートライナー / P01’ 표지 → 행선지 ‘神戸空港 / Kobe Airport’ 확인 후 탑승','고베공항역 하차 → 제1터미널 방향 통로 → 1층','‘Free Shuttle Bus / T2’ 무료버스 또는 지붕 보행로 → T2 (약 10분)'],warn:'기타부두(北埠頭) 순환행과 혼동 주의. 환승 보행 5~7분, 캐리어 포함 10분 여유.'}]
+  ],
+  opts:{h:'시간 남거나 대안',p:'시간이 남으면 에디온 추가. 오사카성을 쉬면 야사카 신사(09:00~10:00) 또는 09:00 가정식 → 10:00 에디온 → 빅카메라. 두 곳 모두 넣지 않기.',k:['edion','yasaka']}}
+];
+const ll=k=>P[k][0]+','+P[k][1];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const G='https://www.google.com/maps/';
+const mapU=k=>G+'search/?api=1&query='+ll(k);
+const panoU=k=>G+'@?api=1&map_action=pano&viewpoint='+ll(k);
+const dirU=(a,b,m)=>G+'dir/?api=1&origin='+ll(a)+'&destination='+ll(b)+'&travelmode='+(m==='walk'?'walking':'transit');
+const I={
+ eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+ pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-7 7-12a7 7 0 1 0-14 0c0 5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+ go:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+};
+const btns=k=>`<div class="btns"><a class="btn main" href="${panoU(k)}">${I.eye}로드뷰</a><a class="btn" href="${mapU(k)}">${I.pin}지도</a></div>`;
+const tabs=document.getElementById('tabs'),day=document.getElementById('day');
+tabs.innerHTML=DAYS.map((x,i)=>`<button role="tab" id="t${i}" data-i="${i}" aria-selected="false"><b>${i+1}일차</b>${x.d}(${x.w})</button>`).join('');
+function render(i){
+  const x=DAYS[i];
+  document.documentElement.style.setProperty('--c',x.c);
+  tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',b.dataset.i==i));
+  const all=G+'dir/'+x.stops.map(s=>ll(s[0])).join('/')+'/';
+  let h=`<div class="dayhead"><h2>${i+1}일차 · ${esc(x.t)}</h2><p>${esc(x.s)}</p>
+   <div class="whole"><a class="btn main" href="${all}">${I.go}하루 전체 경로 지도로 보기</a></div>
+   <div class="legend"><span><i></i>전철</span><span><i class="w"></i>도보</span><span><i class="b"></i>투어 버스</span></div></div><ol class="route">`;
+  x.stops.forEach((s,j)=>{
+    const [k,tm,note,leg,tip]=s,p=P[k];
+    if(leg){const prev=x.stops[j-1][0];
+      const st=leg.steps?`<details class="steps"><summary>단계별 안내 (${leg.steps.length})</summary><ol>${leg.steps.map(t=>`<li>${esc(t)}</li>`).join('')}</ol>${leg.warn?`<p class="warn">${esc(leg.warn)}</p>`:''}</details>`:'';
+      h+=`<li class="leg ${leg.m}"><span></span><span class="rail"></span><div class="legcard"><b>${esc(leg.n)}</b><br>${esc(P[prev][2])} → ${esc(p[2])}
+       ${leg.m==='bus'?'':`<div class="btns"><a class="btn" href="${dirU(prev,k,leg.m)}">${I.go}${leg.m==='walk'?'도보 길찾기':'대중교통 길찾기'}</a></div>`}${st}</div></li>`;}
+    h+=`<li class="stop"><span class="time">${esc(tm)}</span><span class="rail"><span class="dot"></span></span><div class="body">
+      <h3>${esc(p[2])}</h3><div class="jp">${esc(p[3])}</div>${note?`<p class="note">${esc(note)}</p>`:'<p class="note"></p>'}
+      ${tip?`<p class="tip">${esc(tip)}</p>`:''}${btns(k)}</div></li>`;
+  });
+  h+='</ol>';
+  if(x.opts){h+=`<section class="opts"><h3>선택 · ${esc(x.opts.h)}</h3><p>${esc(x.opts.p)}</p>${x.opts.k.map(k=>`<div class="opt"><div><b>${esc(P[k][2])}</b><span>${esc(P[k][3])}</span></div>${btns(k)}</div>`).join('')}</section>`;}
+  day.innerHTML=h;
+}
+function fromHash(){const m=/^#day([1-4])$/.exec(location.hash);return m?+m[1]-1:0}
+tabs.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;history.replaceState(null,'','#day'+(i+1));render(i);});
+window.addEventListener('hashchange',()=>render(fromHash()));
+render(fromHash());
+}
+</script>
+</body>
+</html>
