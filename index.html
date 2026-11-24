@@ -73,6 +73,18 @@ small.src{display:block;color:var(--mute);font-size:13px;margin-top:10px}
 .opts h3{margin:0 0 4px;font-size:17px}.opts>p{margin:0 0 10px;color:var(--mute);font-size:14px}
 .opt{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;padding:10px 0;border-top:1px solid var(--line)}
 .opt b{display:block;font-size:16px}.opt span{color:var(--mute);font-size:13px}
+.btn.walkbtn{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.walker{position:fixed;inset:0;z-index:50;background:#111;color:#fff;display:none;grid-template-rows:auto minmax(0,38fr) minmax(0,62fr) auto}
+.walker.on{display:grid}
+.wk-top{display:flex;align-items:center;gap:10px;padding:10px max(3vw,12px);background:var(--c)}
+.wk-top b{flex:1;font-size:15px;line-height:1.3}
+.wk-x{min-width:44px;min-height:44px;border:0;border-radius:22px;background:rgba(255,255,255,.2);color:#fff;font-size:20px;cursor:pointer}
+#wkMap,#wkPano{width:100%;height:100%;background:#222}
+.wk-bar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px max(3vw,12px) max(12px,env(safe-area-inset-bottom));background:#111}
+.wk-bar button,.wk-bar select{min-height:44px;min-width:44px;border-radius:22px;border:1.5px solid #555;background:#222;color:#fff;font:inherit;font-size:15px;padding:0 14px;cursor:pointer}
+.wk-bar input{width:100%;accent-color:var(--c)}
+.wk-msg{grid-column:1/-1;font-size:13px;color:#bbb;min-height:18px}
+@media(min-width:900px){.walker{grid-template-columns:minmax(0,2fr) minmax(0,3fr);grid-template-rows:auto minmax(0,1fr) auto}.wk-top,.wk-bar{grid-column:1/-1}}
 </style>
 </head>
 <body>
@@ -86,6 +98,16 @@ small.src{display:block;color:var(--mute);font-size:13px;margin-top:10px}
   </div>
 </header>
 <nav class="tabs" aria-label="일차 선택"><div class="wrap" id="tabs" role="tablist"></div></nav>
+<div class="walker" id="walker" role="dialog" aria-modal="true" aria-label="로드뷰 걸어보기">
+  <div class="wk-top"><b id="wkTitle">걸어보기</b><button class="wk-x" id="wkClose" aria-label="닫기">×</button></div>
+  <div id="wkMap"></div><div id="wkPano"></div>
+  <div class="wk-bar">
+    <button id="wkPlay" aria-label="재생">▶</button>
+    <input type="range" id="wkSeek" min="0" max="0" value="0" aria-label="진행 위치">
+    <select id="wkSpeed" aria-label="속도"><option value="1600">느리게</option><option value="1000" selected>보통</option><option value="550">빠르게</option></select>
+    <div class="wk-msg" id="wkMsg"></div>
+  </div>
+</div>
 <main class="wrap">
   <section id="day"></section>
   <div class="help">
@@ -205,6 +227,7 @@ const DAYS=[
   ],
   opts:{h:'시간 남거나 대안',p:'시간이 남으면 에디온 추가. 오사카성을 쉬면 야사카 신사(09:00~10:00) 또는 09:00 가정식 → 10:00 에디온 → 빅카메라. 두 곳 모두 넣지 않기.',k:['edion','yasaka']}}
 ];
+const MAPS_KEY='AIzaSyAxpuGo-cc7EUKWBMl9dv4HSK6PeZASx9E';
 const ll=k=>P[k][0]+','+P[k][1];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const G='https://www.google.com/maps/';
@@ -232,7 +255,7 @@ function render(i){
     if(leg){const prev=x.stops[j-1][0];
       const st=leg.steps?`<details class="steps"><summary>단계별 안내 (${leg.steps.length})</summary><ol>${leg.steps.map(t=>`<li>${esc(t)}</li>`).join('')}</ol>${leg.warn?`<p class="warn">${esc(leg.warn)}</p>`:''}</details>`:'';
       h+=`<li class="leg ${leg.m}"><span></span><span class="rail"></span><div class="legcard"><b>${esc(leg.n)}</b><br>${esc(P[prev][2])} → ${esc(p[2])}
-       ${leg.m==='bus'?'':`<div class="btns"><a class="btn" href="${dirU(prev,k,leg.m)}">${I.go}${leg.m==='walk'?'도보 길찾기':'대중교통 길찾기'}</a></div>`}${st}</div></li>`;}
+       ${leg.m==='bus'?'':`<div class="btns">${leg.m==='walk'&&MAPS_KEY?`<button class="btn walkbtn" data-a="${prev}" data-b="${k}">▶ 걸어보기</button>`:''}<a class="btn" href="${dirU(prev,k,leg.m)}">${I.go}${leg.m==='walk'?'도보 길찾기':'대중교통 길찾기'}</a></div>`}${st}</div></li>`;}
     h+=`<li class="stop"><span class="time">${esc(tm)}</span><span class="rail"><span class="dot"></span></span><div class="body">
       <h3>${esc(p[2])}</h3><div class="jp">${esc(p[3])}</div>${note?`<p class="note">${esc(note)}</p>`:'<p class="note"></p>'}
       ${tip?`<p class="tip">${esc(tip)}</p>`:''}${btns(k)}</div></li>`;
@@ -245,6 +268,89 @@ function fromHash(){const m=/^#day([1-4])$/.exec(location.hash);return m?+m[1]-1
 tabs.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;history.replaceState(null,'','#day'+(i+1));render(i);});
 window.addEventListener('hashchange',()=>render(fromHash()));
 render(fromHash());
+
+/* ---- 로드뷰 걸어보기 ---- */
+const W={el:document.getElementById('walker'),msg:document.getElementById('wkMsg'),seek:document.getElementById('wkSeek'),play:document.getElementById('wkPlay'),speed:document.getElementById('wkSpeed'),title:document.getElementById('wkTitle'),frames:[],i:0,timer:null,run:0};
+let gm=null,mapObj,panoObj,svc,line,dotM;
+function loadMaps(){
+  if(gm)return gm;
+  gm=new Promise((res,rej)=>{
+    window.__gmReady=()=>res(window.google.maps);
+    const sc=document.createElement('script');
+    sc.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(MAPS_KEY)+'&v=weekly&language=ko&region=JP&loading=async&libraries=geometry,routes&callback=__gmReady';
+    sc.async=true;sc.onerror=()=>{gm=null;rej(new Error('load'))};document.head.appendChild(sc);
+  });
+  window.gm_authFailure=()=>{W.msg.textContent='지도 키 인증에 실패했어요. 키 설정을 확인해 주세요.'};
+  return gm;
+}
+const pt=p=>({lat:typeof p.lat==='function'?p.lat():p.lat,lng:typeof p.lng==='function'?p.lng():p.lng});
+async function walkPath(g,a,b){
+  try{
+    const {Route}=await g.importLibrary('routes');
+    const {routes}=await Route.computeRoutes({origin:a,destination:b,travelMode:'WALKING',fields:['path']});
+    if(routes&&routes[0]&&routes[0].path&&routes[0].path.length>1)return routes[0].path.map(pt);
+  }catch(e){console.warn('route',e)}
+  W.msg.textContent='도보 경로를 못 받아서 두 지점을 직선으로 이었어요.';
+  return [a,b];
+}
+function sample(g,path,step){
+  const S=g.geometry.spherical,out=[path[0]];
+  for(let i=1;i<path.length;i++){
+    const A=new g.LatLng(path[i-1]),B=new g.LatLng(path[i]),d=S.computeDistanceBetween(A,B);
+    for(let t=step;t<d;t+=step)out.push(pt(S.interpolate(A,B,t/d)));
+    out.push(path[i]);
+  }
+  return out;
+}
+function getPano(loc){
+  return new Promise(r=>svc.getPanorama({location:loc,radius:35,source:google.maps.StreetViewSource.OUTDOOR,preference:google.maps.StreetViewPreference.NEAREST},(d,st)=>r(st==='OK'?d:null)));
+}
+async function openWalk(a,b){
+  const run=++W.run;
+  W.el.classList.add('on');document.body.style.overflow='hidden';
+  W.title.textContent=P[a][2]+' → '+P[b][2];
+  stop();W.frames=[];W.i=0;W.seek.max=0;W.seek.value=0;W.msg.textContent='경로 불러오는 중…';
+  let g;try{g=await loadMaps()}catch(e){W.msg.textContent='지도를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.';return}
+  if(!mapObj){
+    mapObj=new g.Map(document.getElementById('wkMap'),{disableDefaultUI:true,zoomControl:true,gestureHandling:'greedy'});
+    panoObj=new g.StreetViewPanorama(document.getElementById('wkPano'),{addressControl:false,fullscreenControl:false,motionTracking:false,linksControl:true,panControl:false,enableCloseButton:false});
+    svc=new g.StreetViewService();
+    line=new g.Polyline({map:mapObj,strokeColor:'#d6402b',strokeWeight:6,strokeOpacity:.9});
+    dotM=new g.Marker({map:mapObj,zIndex:9,icon:{path:g.SymbolPath.CIRCLE,scale:9,fillColor:'#fff',fillOpacity:1,strokeColor:'#111',strokeWeight:3}});
+    line.addListener('click',e=>{let best=0,bd=1e9;W.frames.forEach((f,j)=>{const d=g.geometry.spherical.computeDistanceBetween(e.latLng,new g.LatLng(f.loc));if(d<bd){bd=d;best=j}});show(best)});
+  }
+  line.setOptions({strokeColor:getComputedStyle(document.documentElement).getPropertyValue('--c').trim()||'#d6402b'});
+  const A={lat:P[a][0],lng:P[a][1]},B={lat:P[b][0],lng:P[b][1]};
+  const path=await walkPath(g,A,B);if(run!==W.run)return;
+  line.setPath(path);const bd=new g.LatLngBounds();path.forEach(p=>bd.extend(p));mapObj.fitBounds(bd,30);
+  const pts=sample(g,path,15);const res=new Array(pts.length);let done=0;
+  W.msg.textContent='로드뷰 준비 중 0/'+pts.length;
+  let next=0;
+  await Promise.all(Array.from({length:5},async()=>{while(next<pts.length){const j=next++;res[j]=await getPano(pts[j]);done++;if(run===W.run)W.msg.textContent='로드뷰 준비 중 '+done+'/'+pts.length;}}));
+  if(run!==W.run)return;
+  const fr=[];res.forEach((d,j)=>{if(!d)return;const id=d.location.pano;if(fr.length&&fr[fr.length-1].pano===id)return;fr.push({pano:id,loc:pts[j],at:j})});
+  fr.forEach((f,j)=>{const to=fr[j+1]?fr[j+1].loc:pts[pts.length-1];f.h=g.geometry.spherical.computeHeading(new g.LatLng(f.loc),new g.LatLng(to))});
+  if(fr.length>1)fr[fr.length-1].h=fr[fr.length-2].h;
+  W.frames=fr;
+  if(!fr.length){W.msg.textContent='이 구간은 거리 사진이 없어요.';return}
+  W.seek.max=fr.length-1;show(0);
+  const miss=pts.length-res.filter(Boolean).length;
+  W.msg.textContent='약 '+Math.round(g.geometry.spherical.computeLength(path.map(p=>new g.LatLng(p))))+'m · 사진 '+fr.length+'장'+(miss?' · 일부 구간은 사진 없음':'')+' · ▶를 누르거나 지도의 선을 눌러 이동';
+}
+function show(j){
+  const f=W.frames[j];if(!f)return;W.i=j;W.seek.value=j;
+  panoObj.setPano(f.pano);panoObj.setPov({heading:f.h||0,pitch:0});panoObj.setZoom(0);
+  dotM.setPosition(f.loc);if(!mapObj.getBounds()||!mapObj.getBounds().contains(f.loc))mapObj.panTo(f.loc);
+}
+function stop(){clearInterval(W.timer);W.timer=null;W.play.textContent='▶';W.play.setAttribute('aria-label','재생')}
+function start(){if(!W.frames.length)return;if(W.i>=W.frames.length-1)show(0);stop();W.play.textContent='❚❚';W.play.setAttribute('aria-label','일시정지');W.timer=setInterval(()=>{if(W.i>=W.frames.length-1){stop();return}show(W.i+1)},+W.speed.value)}
+W.play.addEventListener('click',()=>W.timer?stop():start());
+W.speed.addEventListener('change',()=>{if(W.timer)start()});
+W.seek.addEventListener('input',()=>{stop();show(+W.seek.value)});
+function closeWalk(){W.run++;stop();W.el.classList.remove('on');document.body.style.overflow=''}
+document.getElementById('wkClose').addEventListener('click',closeWalk);
+document.addEventListener('keydown',e=>{if(!W.el.classList.contains('on'))return;if(e.key==='Escape')closeWalk();if(e.key===' '){e.preventDefault();W.timer?stop():start()}if(e.key==='ArrowRight'){stop();show(Math.min(W.i+1,W.frames.length-1))}if(e.key==='ArrowLeft'){stop();show(Math.max(W.i-1,0))}});
+day.addEventListener('click',e=>{const b=e.target.closest('.walkbtn');if(b)openWalk(b.dataset.a,b.dataset.b)});
 }
 </script>
 </body>
