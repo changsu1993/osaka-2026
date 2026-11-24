@@ -37,7 +37,12 @@ header p{margin:0;opacity:.92;font-size:15px}
 .rail{position:relative;display:flex;justify-content:center}
 .rail::before{content:"";position:absolute;top:0;bottom:0;width:6px;background:var(--c)}
 .stop:first-child .rail::before{top:20px}.stop:last-child .rail::before{bottom:calc(100% - 20px)}
-.dot{position:relative;margin-top:12px;width:22px;height:22px;border-radius:50%;background:var(--card);border:5px solid var(--c)}
+.dot{position:relative;margin-top:10px;width:28px;height:28px;border-radius:50%;background:var(--c);color:#fff;border:3px solid var(--card);box-shadow:0 0 0 2px var(--c);display:grid;place-items:center;font-size:13px;font-weight:900;line-height:1}
+.num{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:var(--c);color:#fff;font-size:12px;font-weight:900;margin-right:4px;vertical-align:1px}
+.flow{list-style:none;margin:14px 0 0;padding:12px;display:flex;flex-wrap:wrap;gap:6px 4px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;font-size:14px}
+.flow li{display:inline-flex;align-items:center}.flow li+li::before{content:'→';color:var(--mute);margin:0 6px 0 2px}
+.flow a{color:inherit;text-decoration:none}.flow a:hover{text-decoration:underline}
+.stop{scroll-margin-top:80px}
 .body{padding:10px 0 16px}
 .body h3{margin:0;font-size:18px;line-height:1.3}
 .body .jp{color:var(--mute);font-size:13px}
@@ -231,9 +236,11 @@ const MAPS_KEY='AIzaSyAxpuGo-cc7EUKWBMl9dv4HSK6PeZASx9E';
 const ll=k=>P[k][0]+','+P[k][1];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const G='https://www.google.com/maps/';
-const mapU=k=>G+'search/?api=1&query='+ll(k);
+const Q={kix2:'神戸空港 第2ターミナル',snLocker:'JR三ノ宮駅 東口',steak:'ステーキランド神戸館',hanshin:'阪神 神戸三宮駅',stay:'大阪府大阪市中央区日本橋1-10-15',ogi:'扇町駅 大阪メトロ',tenma:'裏天満',tsuru:'つるとんたん 宗右衛門町店',fushimi:'伏見稲荷大社',kiyo:'清水寺',kinka:'金閣寺',arashi:'渡月橋',doton:'ドトンプラザ 大阪',satsuma:'らーめん 薩摩っ子 道頓堀',acchichi:'あっちち本舗 道頓堀店',donki:'ドン・キホーテ 道頓堀店',glico:'グリコサイン 道頓堀',wanaka:'たこ焼道楽 わなか 道頓堀',ebisu:'戎橋 大阪',kogaryu:'甲賀流 アメリカ村本店',fujimoto:'焼肉 ふじもと 心斎橋店',hozenji:'法善寺横丁',rikimaru:'焼肉 力丸 千日前店',en:'炭火焼肉 焔 en なんば日本橋店',kintetsu:'近鉄日本橋駅',usj:'ユニバーサル・スタジオ・ジャパン',ucity:'ユニバーサルシティ駅',nishikujo:'西九条駅',tennoji:'JR天王寺駅',harukas:'ハルカス300 展望台',moegi:'お好み焼 萌木 難波',acchichiH:'あっちち本舗 本店',tani4:'谷町四丁目駅',otemon:'大阪城 大手門',castle:'大阪城天守閣',bic:'ビックカメラ なんば店',naniwa:'なにわ日本橋食堂',edion:'エディオン なんば本店',yasaka:'難波八阪神社'};
+const nm=k=>encodeURIComponent(Q[k]||ll(k));
+const mapU=k=>G+'search/?api=1&query='+nm(k);
 const panoU=k=>G+'@?api=1&map_action=pano&viewpoint='+ll(k);
-const dirU=(a,b,m)=>G+'dir/?api=1&origin='+ll(a)+'&destination='+ll(b)+'&travelmode='+(m==='walk'?'walking':'transit');
+const dirU=(a,b,m)=>G+'dir/?api=1&origin='+nm(a)+'&destination='+nm(b)+'&travelmode='+(m==='walk'?'walking':'transit');
 const I={
  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-7 7-12a7 7 0 1 0-14 0c0 5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>',
@@ -246,17 +253,18 @@ function render(i){
   const x=DAYS[i];
   document.documentElement.style.setProperty('--c',x.c);
   tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',b.dataset.i==i));
-  const all=G+'dir/'+x.stops.map(s=>ll(s[0])).join('/')+'/';
+  const all=G+'dir/'+x.stops.map(s=>nm(s[0])).join('/')+'/';
+  const flow=`<ol class="flow" aria-label="오늘 순서">${x.stops.map((s,j)=>`<li><a href="#s${i}-${j}"><span class="num">${j+1}</span>${esc(P[s[0]][2].replace(/ \(.*\)$/,''))}</a></li>`).join('')}</ol>`;
   let h=`<div class="dayhead"><h2>${i+1}일차 · ${esc(x.t)}</h2><p>${esc(x.s)}</p>
    <div class="whole"><a class="btn main" href="${all}">${I.go}하루 전체 경로 지도로 보기</a></div>
-   <div class="legend"><span><i></i>전철</span><span><i class="w"></i>도보</span><span><i class="b"></i>투어 버스</span></div></div><ol class="route">`;
+   ${flow}<div class="legend"><span><i></i>전철</span><span><i class="w"></i>도보</span><span><i class="b"></i>투어 버스</span></div></div><ol class="route">`;
   x.stops.forEach((s,j)=>{
     const [k,tm,note,leg,tip]=s,p=P[k];
     if(leg){const prev=x.stops[j-1][0];
       const st=leg.steps?`<details class="steps"><summary>단계별 안내 (${leg.steps.length})</summary><ol>${leg.steps.map(t=>`<li>${esc(t)}</li>`).join('')}</ol>${leg.warn?`<p class="warn">${esc(leg.warn)}</p>`:''}</details>`:'';
-      h+=`<li class="leg ${leg.m}"><span></span><span class="rail"></span><div class="legcard"><b>${esc(leg.n)}</b><br>${esc(P[prev][2])} → ${esc(p[2])}
-       ${leg.m==='bus'?'':`<div class="btns">${leg.m==='walk'&&MAPS_KEY?`<button class="btn walkbtn" data-a="${prev}" data-b="${k}">▶ 걸어보기</button>`:''}<a class="btn" href="${dirU(prev,k,leg.m)}">${I.go}${leg.m==='walk'?'도보 길찾기':'대중교통 길찾기'}</a></div>`}${st}</div></li>`;}
-    h+=`<li class="stop"><span class="time">${esc(tm)}</span><span class="rail"><span class="dot"></span></span><div class="body">
+      h+=`<li class="leg ${leg.m}"><span></span><span class="rail"></span><div class="legcard"><b>${esc(leg.n)}</b><br><span class="num">${j}</span>${esc(P[prev][2])} → <span class="num">${j+1}</span>${esc(p[2])}
+       ${leg.m==='bus'?'':`<div class="btns">${leg.m==='walk'&&MAPS_KEY?`<button class="btn walkbtn" data-a="${prev}" data-b="${k}" data-na="${j}" data-nb="${j+1}">▶ 걸어보기</button>`:''}<a class="btn" href="${dirU(prev,k,leg.m)}">${I.go}${leg.m==='walk'?'도보 길찾기':'대중교통 길찾기'}</a></div>`}${st}</div></li>`;}
+    h+=`<li class="stop" id="s${i}-${j}"><span class="time">${esc(tm)}</span><span class="rail"><span class="dot">${j+1}</span></span><div class="body">
       <h3>${esc(p[2])}</h3><div class="jp">${esc(p[3])}</div>${note?`<p class="note">${esc(note)}</p>`:'<p class="note"></p>'}
       ${tip?`<p class="tip">${esc(tip)}</p>`:''}${btns(k)}</div></li>`;
   });
@@ -305,10 +313,10 @@ function sample(g,path,step){
 function getPano(loc){
   return new Promise(r=>svc.getPanorama({location:loc,radius:35,source:google.maps.StreetViewSource.OUTDOOR,preference:google.maps.StreetViewPreference.NEAREST},(d,st)=>r(st==='OK'?d:null)));
 }
-async function openWalk(a,b){
+async function openWalk(a,b,na,nb){
   const run=++W.run;
   W.el.classList.add('on');document.body.style.overflow='hidden';
-  W.title.textContent=P[a][2]+' → '+P[b][2];
+  W.title.textContent=(na?na+'. ':'')+P[a][2]+'  →  '+(nb?nb+'. ':'')+P[b][2];
   stop();W.frames=[];W.i=0;W.seek.max=0;W.seek.value=0;W.msg.textContent='경로 불러오는 중…';
   let g;try{g=await loadMaps()}catch(e){W.msg.textContent='지도를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.';return}
   if(!mapObj){
@@ -322,7 +330,9 @@ async function openWalk(a,b){
   line.setOptions({strokeColor:getComputedStyle(document.documentElement).getPropertyValue('--c').trim()||'#d6402b'});
   const A={lat:P[a][0],lng:P[a][1]},B={lat:P[b][0],lng:P[b][1]};
   const path=await walkPath(g,A,B);if(run!==W.run)return;
-  line.setPath(path);const bd=new g.LatLngBounds();path.forEach(p=>bd.extend(p));mapObj.fitBounds(bd,30);
+  line.setPath(path);
+  const pin=(pos,t,txt)=>new g.Marker({map:mapObj,position:pos,zIndex:8,title:t,label:{text:String(txt),color:'#fff',fontWeight:'900',fontSize:'13px'},icon:{path:g.SymbolPath.CIRCLE,scale:13,fillColor:getComputedStyle(document.documentElement).getPropertyValue('--c').trim()||'#d6402b',fillOpacity:1,strokeColor:'#fff',strokeWeight:3}});
+  (W.pins||[]).forEach(m=>m.setMap(null));W.pins=[pin(A,P[a][2],na||'출발'),pin(B,P[b][2],nb||'도착')];const bd=new g.LatLngBounds();path.forEach(p=>bd.extend(p));mapObj.fitBounds(bd,30);
   const pts=sample(g,path,15);const res=new Array(pts.length);let done=0;
   W.msg.textContent='로드뷰 준비 중 0/'+pts.length;
   let next=0;
@@ -350,7 +360,7 @@ W.seek.addEventListener('input',()=>{stop();show(+W.seek.value)});
 function closeWalk(){W.run++;stop();W.el.classList.remove('on');document.body.style.overflow=''}
 document.getElementById('wkClose').addEventListener('click',closeWalk);
 document.addEventListener('keydown',e=>{if(!W.el.classList.contains('on'))return;if(e.key==='Escape')closeWalk();if(e.key===' '){e.preventDefault();W.timer?stop():start()}if(e.key==='ArrowRight'){stop();show(Math.min(W.i+1,W.frames.length-1))}if(e.key==='ArrowLeft'){stop();show(Math.max(W.i-1,0))}});
-day.addEventListener('click',e=>{const b=e.target.closest('.walkbtn');if(b)openWalk(b.dataset.a,b.dataset.b)});
+day.addEventListener('click',e=>{const f=e.target.closest('.flow a');if(f){e.preventDefault();document.getElementById(f.getAttribute('href').slice(1))?.scrollIntoView({behavior:'smooth'});return}const b=e.target.closest('.walkbtn');if(b)openWalk(b.dataset.a,b.dataset.b,b.dataset.na,b.dataset.nb)});
 }
 </script>
 </body>
