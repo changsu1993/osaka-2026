@@ -23,9 +23,11 @@ header{background:var(--red);color:#fff;padding:28px 0 22px}
 header h1{font-size:clamp(30px,7vw,44px);line-height:1.05;margin:0 0 8px;font-weight:900;text-wrap:balance}
 header p{margin:0;opacity:.92;font-size:15px}
 .tabs{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
-.tabs .wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding-block:10px}
+.tabs .wrap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;padding-block:10px}
 .tabs button{min-height:52px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;font:inherit;font-size:13px;line-height:1.2;cursor:pointer;padding:4px}
-.tabs button b{display:block;font-size:16px}
+.tabs button b{display:block;font-size:15px;white-space:nowrap}
+.tabs button{font-size:12px!important;white-space:nowrap}
+.tabs button.today b::after{content:' ●';font-size:9px;vertical-align:3px}
 .tabs button[aria-selected=true]{background:var(--c);border-color:var(--c);color:#fff}
 .tabs button:focus-visible,.btn:focus-visible,.top a:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 .dayhead{padding:22px 0 6px}
@@ -42,7 +44,7 @@ header p{margin:0;opacity:.92;font-size:15px}
 .num{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:var(--c);color:#fff;font-size:12px;font-weight:900;margin-right:4px;vertical-align:1px}
 .flow{list-style:none;margin:14px 0 0;padding:12px;display:flex;flex-wrap:wrap;gap:6px 4px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;font-size:14px}
 .flow li{display:inline-flex;align-items:center}.flow li+li::before{content:'→';color:var(--mute);margin:0 6px 0 2px}
-.flow a{color:inherit;text-decoration:none}.flow a:hover{text-decoration:underline}
+.flow a{color:inherit;text-decoration:none;display:inline-flex;align-items:center;min-height:38px;padding-right:2px}.flow a:hover{text-decoration:underline}
 .stop{scroll-margin-top:80px}
 .body{padding:10px 0 16px}
 .body h3{margin:0;font-size:18px;line-height:1.3}
@@ -64,6 +66,8 @@ header p{margin:0;opacity:.92;font-size:15px}
 .jpq{margin:12px 0 0;font-size:14px;line-height:1.6}.jpq b{display:block;font-size:17px;margin-top:8px;word-break:normal;line-break:strict}
 .help a[href^=tel]{white-space:nowrap}
 .help.sos{margin-top:0}
+.opts.near{border-style:solid;border-color:var(--line);background:var(--card);margin-top:14px}
+.opts.near .opt:first-child{border-top:0;padding-top:0}
 .help h3{margin:0 0 8px;font-size:17px}
 .help ol{margin:0;padding-left:20px}.help li{margin:4px 0}
 .top{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
@@ -164,6 +168,11 @@ const P={
   stay:[34.6674643,135.5081997,'닛폰바시 숙소','日本橋 1-10-15 · 긴테쓰닛폰바시역 7번 출구 도보 2분'],
   ibuki:[34.6661111,135.5075,'이부키 커피점 (아침 커피)','伊吹珈琲店 黒門市場 · 07:00 오픈 · 타베로그 3.52'],
   brooklyn:[34.6910465,135.5091563,'브루클린 로스팅 컴퍼니 (강가 커피)','Brooklyn Roasting Company 北浜 · 평일 08:00 오픈'],
+  katsugyu:[34.995615,135.7791843,'규카츠 교토 가츠규 (청수사 점심 후보)','京都勝牛 清水五条坂 · 옆에 말차 가게'],
+  cv1:[34.6660842,135.5089566,'세븐일레븐 닛폰바시 1초메점','숙소에서 도보 약 3분 · 220m · 가장 가까움'],
+  cv2:[34.6672669,135.5063003,'패밀리마트 닛폰바시 1초메점','숙소에서 도보 약 4분 · 250m · 긴테쓰닛폰바시역 옆'],
+  cv3:[34.6677008,135.5063242,'세븐일레븐 닛폰바시역 동쪽점','숙소에서 도보 약 4분 · 270m · 긴테쓰닛폰바시역 옆'],
+  cv4:[34.6657349,135.5059453,'로손 니혼바시 1초메점','숙소에서 도보 약 6분 · 400m'],
   ogi:[34.7037154,135.5108915,'오기마치역','扇町駅 · 사카이스지선'],
   tenma:[34.7069692,135.5131571,'우라텐마 초친도리','裏天満ちょうちん通り'],
   tsuru:[34.6692099,135.5059835,'츠루톤탄 소에몬초점 앞 (투어 집결)','つるとんたん 宗右衛門町店 · Ndaytrip 피켓'],
@@ -205,13 +214,13 @@ const DAYS=[
    ['kix2','15:10','13:35 인천 T1 출발 → 15:10 고베 T2 도착. 입국·수하물 수령.'],
    ['snLocker','','포트라이너로 올라가는 에스컬레이터 오른쪽 라커. 24인치 캐리어는 중형부터 대보고 필요하면 대형. 라커 번호 사진 찍기.',
     {m:'transit',n:'T2→T1 도보/무료버스 + 포트라이너 · 약 30~40분 · 340엔',steps:['T2 1층 도착로비에서 ‘Port Liner / T1’ 표지 확인','T2 출구 바닥의 T1 화살표 → 오른쪽, 지붕 있는 보행로를 따라 T1 방향 직진 (도보 약 10분 또는 무료버스)','‘포트라이너 연결구’ 표지 → 초록색 ‘Terminal 1’ 표지 → 포트라이너 고베공항역','T1 2층 고베공항역에서 ICOCA 구매·충전 → 산노미야행 탑승 (약 18분)'],warn:'버스 대안: T2 → 산노미야 마린에어 셔틀 340엔, 시간표는 공식 안내 확인.'}],
-   ['steak','17:00','17:00 예약. 레인보우 플라자(レインボープラザ) 8층, 北長狭通 1-9-3. 늦을 것 같으면 가게로 전화 078-333-7080.',{m:'walk',n:'도보'}],
-   ['hanshin','','같은 라커에서 짐 찾고 한신선으로.',
+   ['steak','17:00','17:00 예약. 레인보우 플라자(レインボープラザ) 8층, 北長狭通 1-9-3. 식사는 18:00~18:30쯤 끝날 것으로 예상(가게 안내상 저녁 이용 시간은 최대 2시간). 늦을 것 같으면 가게로 전화 078-333-7080.',{m:'walk',n:'도보'}],
+   ['hanshin','18:45','같은 라커에서 짐 찾고 한신선으로.',
     {m:'walk',n:'도보 · 라커 경유 · 환승 보행 약 5~7분',steps:['JR 산노미야역 동쪽 출구 1층 라커에서 캐리어 수령','초록색 ‘Port Liner / P01 / Kobe Airport’ 표지는 따라가지 말고 ‘阪神電車 / Hanshin Line / 阪神(東口)’ 표지 따라가기','한신 고베산노미야역 동쪽 개찰구 → 2번 승강장 ‘大阪難波・近鉄奈良’ 방면 확인'],warn:'역 공사나 임시 통로가 있으면 현장 표지 우선.'}],
-   ['stay','','체크인 후 캐리어 두고 텐마로 출발.',
+   ['stay','20:00','20:00 전후 도착 예상. 들어가기 전 편의점에서 아침거리·마실 것 사두기. 체크인 후 캐리어 두고 텐마로 출발.',
     {m:'transit',n:'한신·긴테쓰선 · 약 50~60분 · 약 600엔',steps:['近鉄奈良행 쾌속급행은 긴테쓰닛폰바시까지 직통','大阪難波 종착이면 오사카난바에서 나라 방면 열차로 1정거장 환승','긴테쓰닛폰바시역 하차 → Osaka Metro 연결 통로에서 ‘7번 출구 / 国立文楽劇場’ 표지','7번 출구(계단)로 지상 → 숙소까지 도보 약 2분'],warn:'7번 출구는 계단이에요. 캐리어가 무거우면 역무원에게 엘리베이터 출구 확인.'}],
    ['ogi','','',{m:'transit',n:'사카이스지선 닛폰바시역 → 오기마치역'}],
-   ['tenma','20:00','JR 텐마역을 지나 초친도리에서 한잔.',{m:'walk',n:'도보'}],
+   ['tenma','20:30','20:30 전후 도착 예상. JR 텐마역을 지나 초친도리에서 한잔. 저녁은 예약 없이 가서 정하기.',{m:'walk',n:'도보'}],
    ['stay','','',{m:'transit',n:'오기마치역 → 사카이스지선 닛폰바시역 → 숙소'}]
   ],
   opts:null},
@@ -222,7 +231,7 @@ const DAYS=[
    ['tsuru','08:10','가게 앞 보도에서 ‘Ndaytrip’ 피켓 확인. 08:30 버스 출발.',
     {m:'walk',n:'도보 약 10분',steps:['구로몬시장에서 사카이스지(큰길)로 나와 북쪽 닛폰바시역 사거리 방향 직진','사거리에서 도톤보리강 방향으로 우회전 → 큰길 따라 닛폰바시 다리 건너기','다리 끝 왼편, 커다란 사각 간판 ‘つるとんたん’ 확인'],links:[['역 사거리부터 보는 한글 약도 (PDF)','https://www.limonbus.com/contents/wp-content/uploads/2020/06/nippombashi.K.pdf'],['방문 후기 속 가게 외관','https://shuteamjang.tistory.com/154'],['11/29 교토 투어 상품 보기','https://tour.yanolja.com/tna/products/d1c3567a-505e-4208-9093-b968ce45c8d2']]}],
    ['fushimi','','',{m:'bus',n:'투어 버스'}],
-   ['kiyo','','청수사 주변에서 자유 점심.',{m:'bus',n:'투어 버스'}],
+   ['kiyo','11:00','11:00 도착 예정(투어사 안내). 청수사 주변에서 자유 점심. 후보는 규카츠 교토 가츠규 기요미즈 고조자카점, 바로 옆에 말차 가게(아래 선택 참고).',{m:'bus',n:'투어 버스'}],
    ['kinka','','',{m:'bus',n:'투어 버스'}],
    ['arashi','','간식은 아라시야마에서.',{m:'bus',n:'투어 버스'}],
    ['doton','19:00','하차 예정.',{m:'bus',n:'투어 버스 · 오사카 복귀'}],
@@ -233,14 +242,14 @@ const DAYS=[
    ['wanaka','','',{m:'walk',n:'도보'}],
    ['stay','','',{m:'walk',n:'도보'}]
   ],
-  opts:{h:'더 걷거나 2차 갈 때',p:'더 걷고 싶으면 에비스바시 → 고가류 → 후지모토 → 숙소. 숙소 쪽 2차는 호젠지요코초 → 리키마루 또는 엔.',k:['ebisu','kogaryu','fujimoto','hozenji','rikimaru','en']}},
+  opts:{h:'점심 후보 · 더 걷거나 2차 갈 때',p:'청수사 점심 후보는 규카츠 교토 가츠규. 더 걷고 싶으면 에비스바시 → 고가류 → 후지모토 → 숙소. 숙소 쪽 2차는 호젠지요코초 → 리키마루 또는 엔.',k:['katsugyu','ebisu','kogaryu','fujimoto','hozenji','rikimaru','en']}},
  {d:'11/30',w:'월',c:'#2a5bd7',t:'USJ → 하루카스 야경(선택) → 난바 저녁',s:'06:30 기상 · 07:00 숙소 출발. 18:00 퇴장하면 하루카스, 더 놀면 모에기로 바로.',
   stops:[
    ['stay','07:00','숙소 출발.'],
    ['usj','07:40','입장 대기. 입장 직후 공식 앱에서 닌텐도 월드 입장 시간 확인. 11:00 전후 이른 점심 → 지정 시간에 닌텐도 월드 → 마리오카트.',
     {m:'transit',n:'긴테쓰닛폰바시 → 니시쿠조 → 유니버설시티 · 약 26~35분 · 420엔',steps:['긴테쓰닛폰바시역 표지 확인 → 아래층 긴테쓰선, 2번 플랫폼','오사카난바·니시쿠조·고베산노미야(아마가사키) 방면 열차 탑승 → 니시쿠조 하차','‘JR선 환승’ 표지 따라 개찰구 밖 → JR 니시쿠조역','노란색 ‘UNIVERSAL STUDIOS JAPAN / JR선’ 표지 → 전광판에서 ‘JRゆめ咲線·ユニバーサルシティ’ 승강장 확인(2·3·4번 중)','유니버설시티역 개찰구(1곳) 나와 왼쪽 → 시티워크 → USJ 정문'],warn:'표지 키워드: ‘JRゆめ咲線’=유메사키선 / ‘Universal-city’=유니버설시티 / ‘桜島’=사쿠라지마. 승강장은 당일 전광판 우선.'},
     'USJ 앱 · 스튜디오 패스 QR 3장을 한 사람 앱에 등록. 바우처에 닌텐도 월드 지정 시간이 있으면 그걸 우선, 없으면 앱 → e정리권 → 에어리어 입장 정리권 → SUPER NINTENDO WORLD, 셋 다 같은 시간으로 받고 각자 캡처.'],
-   ['harukas','19:00','18:00 퇴장 시 19:00~20:00 야경. 당일 2,200엔 / 전날까지 웹 사전권 1,980엔. 입장 21:30까지.',
+   ['harukas','19:00','18:00 퇴장 시 19:00~20:00 야경. 일정이 바뀔 수 있어 현장 발권 예정(당일 2,200엔). 입장 21:30까지.',
     {m:'transit',n:'유니버설시티 → 니시쿠조 → JR 덴노지',steps:['유니버설시티역 → JR유메사키선 니시쿠조','니시쿠조에서 JR선으로 덴노지 방면','JR 덴노지역에서 하루카스 16층 입구로']}],
    ['moegi','','오코노미야키와 야키소바 나눠 먹기. 마지막 주문 23:00.',
     {m:'transit',n:'덴노지역 → 미도스지선 → 난바'}],
@@ -268,7 +277,7 @@ const MAPS_KEY='AIzaSyAxpuGo-cc7EUKWBMl9dv4HSK6PeZASx9E';
 const ll=k=>P[k][0]+','+P[k][1];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const G='https://www.google.com/maps/';
-const Q={kix2:'神戸空港 第2ターミナル',snLocker:'JR三ノ宮駅 東口',steak:'雪月花 本店 神戸 レインボープラザ',hanshin:'阪神 神戸三宮駅',stay:'〒542-0073 大阪府大阪市中央区日本橋1丁目10-15 冨士ハイツ',ibuki:'伊吹珈琲店 黒門市場',brooklyn:'Brooklyn Roasting Company Kitahama',ogi:'扇町駅 大阪メトロ',tenma:'裏天満ちょうちん通り',tsuru:'つるとんたん 宗右衛門町店',fushimi:'伏見稲荷大社',kiyo:'清水寺',kinka:'金閣寺',arashi:'渡月橋',doton:'ドトンプラザ 大阪',satsuma:'らーめん 薩摩っ子 道頓堀',acchichi:'あっちち本舗 道頓堀店',donki:'ドン・キホーテ 道頓堀店',glico:'グリコサイン 道頓堀',wanaka:'たこ焼道楽 わなか 道頓堀',ebisu:'戎橋 大阪',kogaryu:'甲賀流 アメリカ村本店',fujimoto:'焼肉 ふじもと 心斎橋店',hozenji:'法善寺横丁',rikimaru:'焼肉 力丸 千日前店',en:'炭火焼肉 焔 en なんば日本橋店',kintetsu:'近鉄日本橋駅',usj:'ユニバーサル・スタジオ・ジャパン',ucity:'ユニバーサルシティ駅',nishikujo:'西九条駅',tennoji:'JR天王寺駅',harukas:'ハルカス300 展望台',moegi:'お好み焼 萌木 難波',acchichiH:'あっちち本舗 本店',tani4:'谷町四丁目駅',otemon:'大阪城 大手門',castle:'大阪城天守閣',bic:'ビックカメラ なんば店',naniwa:'なにわ日本橋食堂',edion:'エディオン なんば本店',yasaka:'難波八阪神社'};
+const Q={kix2:'神戸空港 第2ターミナル',snLocker:'JR三ノ宮駅 東口',steak:'雪月花 本店 神戸 レインボープラザ',hanshin:'阪神 神戸三宮駅',stay:'〒542-0073 大阪府大阪市中央区日本橋1丁目10-15 冨士ハイツ',ibuki:'伊吹珈琲店 黒門市場',katsugyu:'GYUKATSU Kyoto Katsugyu Kiyomizu Gojozaka',brooklyn:'Brooklyn Roasting Company Kitahama',ogi:'扇町駅 大阪メトロ',tenma:'裏天満ちょうちん通り',tsuru:'つるとんたん 宗右衛門町店',fushimi:'伏見稲荷大社',kiyo:'清水寺',kinka:'金閣寺',arashi:'渡月橋',doton:'ドトンプラザ 大阪',satsuma:'らーめん 薩摩っ子 道頓堀',acchichi:'あっちち本舗 道頓堀店',donki:'ドン・キホーテ 道頓堀店',glico:'グリコサイン 道頓堀',wanaka:'たこ焼道楽 わなか 道頓堀',ebisu:'戎橋 大阪',kogaryu:'甲賀流 アメリカ村本店',fujimoto:'焼肉 ふじもと 心斎橋店',hozenji:'法善寺横丁',rikimaru:'焼肉 力丸 千日前店',en:'炭火焼肉 焔 en なんば日本橋店',kintetsu:'近鉄日本橋駅',usj:'ユニバーサル・スタジオ・ジャパン',ucity:'ユニバーサルシティ駅',nishikujo:'西九条駅',tennoji:'JR天王寺駅',harukas:'ハルカス300 展望台',moegi:'お好み焼 萌木 難波',acchichiH:'あっちち本舗 本店',tani4:'谷町四丁目駅',otemon:'大阪城 大手門',castle:'大阪城天守閣',bic:'ビックカメラ なんば店',naniwa:'なにわ日本橋食堂',edion:'エディオン なんば本店',yasaka:'難波八阪神社'};
 const nm=k=>encodeURIComponent(Q[k]||ll(k));
 const mapU=k=>G+'search/'+nm(k)+'/@'+ll(k)+',17z';
 const panoU=k=>G+'@?api=1&map_action=pano&viewpoint='+ll(k);
@@ -281,8 +290,16 @@ const I={
 const btns=k=>`<div class="btns"><a class="btn main" href="${panoU(k)}">${I.eye}로드뷰</a><a class="btn" href="${mapU(k)}">${I.pin}지도</a></div>`;
 const tabs=document.getElementById('tabs'),day=document.getElementById('day');
 const TODAY=['2026-11-28','2026-11-29','2026-11-30','2026-12-01'].indexOf(new Date(Date.now()+9*3600e3).toISOString().slice(0,10));
-tabs.innerHTML=DAYS.map((x,i)=>`<button role="tab" id="t${i}" data-i="${i}" aria-selected="false"><b>${i+1}일차${i===TODAY?' · 오늘':''}</b>${x.d}(${x.w})</button>`).join('');
+tabs.innerHTML=DAYS.map((x,i)=>`<button role="tab" id="t${i}" data-i="${i}" aria-selected="false"${i===TODAY?' class="today" aria-label="'+(i+1)+'일차 오늘"':''}><b>${i+1}일차</b>${x.d}(${x.w})</button>`).join('')+`<button role="tab" id="t4" data-i="4" aria-selected="false"><b>편의점</b>숙소 근처</button>`;
+function renderStores(){
+  document.documentElement.style.setProperty('--c','#d6402b');
+  tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',b.dataset.i=='4'));
+  day.innerHTML=`<div class="dayhead"><h2>숙소 근처 편의점</h2><p>모두 24시간이에요. 동선과 상관없이 숙소에서 언제든 갈 수 있는 곳이고, 거리는 구글맵 도보 경로 기준이에요.</p></div>
+  <section class="opts near">${['cv1','cv2','cv3','cv4'].map(k=>`<div class="opt"><div><b>${esc(P[k][2])}</b><span>${esc(P[k][3])}</span></div><div class="btns"><a class="btn main" href="${dirU('stay',k,'walk')}">${I.go}숙소에서 길찾기</a><a class="btn" href="${mapU(k)}">${I.pin}지도</a></div></div>`).join('')}</section>
+  <p class="note" style="margin:0 0 20px;font-size:14px">패밀리마트와 닛폰바시역 동쪽 세븐일레븐은 긴테쓰닛폰바시역 옆이라 숙소 가는 길에 들르기 좋아요. 술을 살 때 실물 여권 확인을 요구할 수 있어요. 세븐일레븐에는 ATM이 있어요.</p>`;
+}
 function render(i){
+  if(i===4){renderStores();return}
   const x=DAYS[i];
   document.documentElement.style.setProperty('--c',x.c);
   tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',b.dataset.i==i));
@@ -307,8 +324,8 @@ function render(i){
   if(x.opts){h+=`<section class="opts"><h3>선택 · ${esc(x.opts.h)}</h3><p>${esc(x.opts.p)}</p>${x.opts.k.map(k=>`<div class="opt"><div><b>${esc(P[k][2])}</b><span>${esc(P[k][3])}</span></div>${btns(k)}</div>`).join('')}</section>`;}
   day.innerHTML=h;
 }
-function fromHash(){const m=/^#day([1-4])$/.exec(location.hash);if(m)return +m[1]-1;const t=new Date(Date.now()+9*3600e3).toISOString().slice(0,10);const idx=['2026-11-28','2026-11-29','2026-11-30','2026-12-01'].indexOf(t);return idx<0?0:idx}
-tabs.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;history.replaceState(null,'','#day'+(i+1));render(i);});
+function fromHash(){if(location.hash==='#stores')return 4;const m=/^#day([1-4])$/.exec(location.hash);if(m)return +m[1]-1;const t=new Date(Date.now()+9*3600e3).toISOString().slice(0,10);const idx=['2026-11-28','2026-11-29','2026-11-30','2026-12-01'].indexOf(t);return idx<0?0:idx}
+tabs.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;history.replaceState(null,'',i===4?'#stores':'#day'+(i+1));render(i);});
 window.addEventListener('hashchange',()=>render(fromHash()));
 render(fromHash());
 
