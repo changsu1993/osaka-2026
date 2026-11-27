@@ -23,10 +23,15 @@ header{background:var(--red);color:#fff;padding:28px 0 22px}
 header h1{font-size:clamp(30px,7vw,44px);line-height:1.05;margin:0 0 8px;font-weight:900;text-wrap:balance}
 header p{margin:0;opacity:.92;font-size:15px}
 .tabs{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
-.tabs .wrap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;padding-block:10px}
+.tabs .wrap{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;padding-block:10px}
 .tabs button{min-height:52px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;font:inherit;font-size:13px;line-height:1.2;cursor:pointer;padding:4px}
 .tabs button b{display:block;font-size:15px;white-space:nowrap}
-.tabs button{font-size:12px!important;white-space:nowrap}
+.tabs button{font-size:11px!important;white-space:nowrap;letter-spacing:-.3px;overflow:hidden}.tabs button b{font-size:14px}
+.shopsec{margin:0 0 22px}.shopsec h3{margin:0 0 2px;font-size:17px}.shopsec>p{margin:0 0 10px;font-size:13px;opacity:.75}
+.shopgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}@media(min-width:600px){.shopgrid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.shopitem{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px;text-decoration:none;color:var(--ink)}
+.shopitem img{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:8px}
+.shopitem b{display:block;font-size:13px;line-height:1.25;margin-top:5px;word-break:keep-all}.shopitem span{display:block;font-size:11px;opacity:.7;line-height:1.25;margin-top:2px;word-break:break-all}.shopitem em{display:block;font-style:normal;font-size:11px;color:var(--c);margin-top:2px}
 .tabs button.today b::after{content:' ●';font-size:9px;vertical-align:3px}
 .tabs button[aria-selected=true]{background:var(--c);border-color:var(--c);color:#fff}
 .tabs button:focus-visible,.btn:focus-visible,.top a:focus-visible{outline:3px solid var(--c);outline-offset:2px}
@@ -290,7 +295,80 @@ const I={
 const btns=k=>`<div class="btns"><a class="btn main" href="${panoU(k)}">${I.eye}로드뷰</a><a class="btn" href="${mapU(k)}">${I.pin}지도</a></div>`;
 const tabs=document.getElementById('tabs'),day=document.getElementById('day');
 const TODAY=['2026-11-28','2026-11-29','2026-11-30','2026-12-01'].indexOf(new Date(Date.now()+9*3600e3).toISOString().slice(0,10));
-tabs.innerHTML=DAYS.map((x,i)=>`<button role="tab" id="t${i}" data-i="${i}" aria-selected="false"${i===TODAY?' class="today" aria-label="'+(i+1)+'일차 오늘"':''}><b>${i+1}일차</b>${x.d}(${x.w})</button>`).join('')+`<button role="tab" id="t4" data-i="4" aria-selected="false"><b>편의점</b>숙소 근처</button>`;
+tabs.innerHTML=DAYS.map((x,i)=>`<button role="tab" id="t${i}" data-i="${i}" aria-selected="false"${i===TODAY?' class="today" aria-label="'+(i+1)+'일차 오늘"':''}><b>${i+1}일차</b>${x.d}(${x.w})</button>`).join('')+`<button role="tab" id="t4" data-i="4" aria-selected="false"><b>편의점</b>숙소 근처</button><button role="tab" id="t5" data-i="5" aria-selected="false"><b>쇼핑</b>사진 목록</button>`;
+const SHOP=[
+ {h:'💊 드럭스토어',s:'2일차 도톤보리 일대',it:[
+  ['카베진 코와 α플러스','キャベジンコーワαプラス','위장약','https://hc.kowa.co.jp/wp-content/uploads/2024/06/CAB_alpha_100t_P_3D_RGB_800-2-1.jpg'],
+  ['오타이산 S','太田胃散S','소화제(가루)','https://ohta-isan.co.jp/document/images/ootaisan_s_01.png'],
+  ['샤론파스','サロンパス','파스','https://www.hisamitsu.co.jp/__assets/images/products/016/016.jpg'],
+  ['동전파스 로이히츠보코','ロイヒつぼ膏','파스','https://www.nichiban.co.jp/general/health/stiff_shoulder/roihi/img/rt.jpg'],
+  ['비오레 UV 아쿠아리치','ビオレUV アクアリッチ','선크림'],
+  ['아넷사 선크림','アネッサ パーフェクトUV スキンケアミルク','선크림','','アネッサ 日焼け止め 金'],
+  ['멜라노CC 세럼','メラノCC 美容液','잡티 케어'],
+  ['하다라보 고쿠쥰','肌ラボ 極潤ヒアルロン液','보습'],
+  ['큐렐 크림','キュレル 潤浸保湿 クリーム','보습'],
+  ['스이사이 파우더 워시','suisai 酵素洗顔パウダー','클렌징'],
+  ['카우 브랜드 클렌징 밀크','カウブランド 無添加 メイク落としミルク','클렌징'],
+  ['캔메이크 치크','キャンメイク クリームチーク','색조'],
+  ['키스미 마스카라','ヒロインメイク マスカラ','색조'],
+  ['휴족시간','休足時間','발 피로'],
+  ['메구리즘 아이마스크','めぐりズム 蒸気でホットアイマスク','눈 피로','','めぐりズム 箱'],
+  ['모아립 립밤','モアリップ 資生堂','립밤']]},
+ {h:'🐧 돈키호테',s:'2일차 저녁 · 쿠폰 사용, 셋이 모아서 한 번에 계산',it:[
+  ['프리츠 타코야키맛','ジャイアントプリッツ たこ焼味','오사카 한정','https://www.glico.com/assets/images/original/【立体画像】13袋_ｼﾞｬｲｱﾝﾄﾌﾟﾘｯﾂ＜たこ焼味＞_20250228.jpg'],
+  ['쟈가리코 타코야키맛','じゃがりこ たこ焼き味','오사카 한정'],
+  ['킷캣 말차','キットカット 濃い抹茶','초콜릿'],
+  ['기노코노야마·타케노코노사토','きのこの山 たけのこの里','초콜릿'],
+  ['알포트','アルフォート ブルボン','초콜릿'],
+  ['블랙썬더','ブラックサンダー','초콜릿'],
+  ['코로로 젤리','コロロ グミ','젤리','https://www.uha-mikakuto.co.jp/catalog/gummy/img/gu25.jpg?1005'],
+  ['파우치형 곤약젤리','蒟蒻畑 クラッシュタイプ','컵형은 반입 금지','https://www.mannanlife.co.jp/lineup/light/images/light_grape.png'],
+  ['쟈가리코','カルビー じゃがりこ サラダ','감자 과자'],
+  ['호로요이','ほろよい 白いサワー','술','https://www.suntory.co.jp/products/pimg/RH14W_R1_20251219.jpg'],
+  ['가쿠 하이볼 캔','角ハイボール缶','술'],
+  ['계란 간장','寺岡家 たまごにかけるお醤油','조미료'],
+  ['후리카케','のりたま ふりかけ','조미료']]},
+ {h:'🏪 편의점',s:'숙소 근처에서 매일',it:[
+  ['파미치키','ファミチキ','패밀리마트','https://www.family.co.jp/content/dam/family/goods/0253116.jpg'],
+  ['에그 산도','ファミリーマート たまごサンド','패밀리마트'],
+  ['수플레 푸딩','ファミリーマート スフレ・プリン','패밀리마트'],
+  ['나나치키','セブンイレブン ななチキ','세븐일레븐'],
+  ['참치마요 오니기리','セブンイレブン ツナマヨネーズ おにぎり','세븐일레븐'],
+  ['스무디','セブンイレブン お店で作るスムージー','세븐일레븐'],
+  ['가라아게쿤','からあげクン','로손'],
+  ['모찌롤','ローソン もち食感ロール','로손'],
+  ['우치카페 크레페','ローソン Uchi Café クレープ','로손']]},
+ {h:'📷 빅카메라 난바점',s:'4일차 오전 · 쿠폰 사용. 술은 한국 입국 시 1인 2병(합계 2L, 400달러 이하)까지 면세',it:[
+  ['나노케어 드라이기','パナソニック ナノケア EH-NA0J','뷰티 가전','https://panasonicjp.scene7.com/is/image/panasonicjp/EH-NA0J-A_%E6%A8%99%E6%BA%96%E3%83%95%E3%83%AA-1?fmt=png-alpha&wid=240'],
+  ['닷사이 23','獺祭 純米大吟醸 磨き二割三分','사케 · 쿠폰 제외'],
+  ['닷사이 39','獺祭 純米大吟醸 磨き三割九分','사케 · 쿠폰 제외'],
+  ['닷사이 45','獺祭 純米大吟醸45','사케 · 쿠폰 제외'],
+  ['구보타 만주','久保田 萬寿','사케'],
+  ['핫카이산','八海山 純米大吟醸','사케 · 쿠폰 제외'],
+  ['깃쵸무','吉四六 麦焼酎','보리소주']]},
+ {h:'🛒 마트·슈퍼',s:'동선에 따로 없음 · 상당수는 돈키호테 식품 코너에도 있음',it:[
+  ['유즈코쇼','ゆず胡椒 チューブ','조미료'],
+  ['미츠칸 아지폰','ミツカン 味ぽん','조미료'],
+  ['히가시마루 우동 스프','ヒガシマル うどんスープ','국물'],
+  ['시마야 날치 육수','シマヤ 焼きあごだし','육수'],
+  ['푸칫토 나베','プチッと鍋','국물'],
+  ['자와 카레','ジャワカレー','카레'],
+  ['바몬드 카레','バーモントカレー','카레'],
+  ['료테이노아지 된장','マルコメ 料亭の味','된장'],
+  ['명란 마요네즈','明太マヨネーズ','밥반찬'],
+  ['드립백 커피','ドリップコーヒー ブレンディ','커피'],
+  ['보스 라떼 베이스','BOSS ラテベース','커피']]}
+];
+const bingU=q=>'https://tse1.mm.bing.net/th?q='+encodeURIComponent(q)+'&w=200&h=200&c=7&rs=1&p=0&mkt=ja-JP';
+function renderShop(){
+  document.documentElement.style.setProperty('--c','#d6402b');
+  tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',b.dataset.i=='5'));
+  day.innerHTML=`<div class="dayhead"><h2>쇼핑 리스트 · 사진으로 보기</h2><p>사진을 누르면 구글 이미지 검색이 열려요. 일본어 이름은 매장에서 찾거나 직원에게 보여줄 때 쓰세요. 가격은 매장마다 달라요.</p></div>
+  <p class="tip">🚫 사면 안 되는 것 · 이브(EVE) 진통제, 파브론·루루 감기약 일부는 한국 반입 금지 성분이에요. 컵 모양 곤약젤리도 반입 금지라 파우치형만. 허용되는 약도 1인 6개 또는 3개월분까지.</p>
+  ${SHOP.map(g=>`<section class="shopsec"><h3>${esc(g.h)}</h3><p>${esc(g.s)}</p><div class="shopgrid">${g.it.map(([ko,jp,tag,img,q])=>`<a class="shopitem" href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(jp)}"><img loading="lazy" referrerpolicy="no-referrer" alt="${esc(ko)}" src="${img?esc(img):bingU(q||jp)}" data-f="${img?bingU(q||jp):''}"><b>${esc(ko)}</b><span>${esc(jp)}</span><em>${esc(tag)}</em></a>`).join('')}</div></section>`).join('')}
+  <p class="tip">🧾 계산할 때 · 돈키호테는 세금 포함 11,000엔·33,000엔 구간을 넘기도록 모아서 계산하고, 쿠폰은 결제 전에 제시. 면세로 산 소모품은 봉인된 채로 가져오고, 출국 전 고베공항에서 세관 확인을 받아야 해요.</p>`;
+  day.querySelectorAll('.shopitem img').forEach(im=>im.addEventListener('error',()=>{if(im.dataset.f&&im.src!==im.dataset.f){const f=im.dataset.f;im.dataset.f='';im.src=f}else im.style.visibility='hidden'}));
+}
 function renderStores(){
   document.documentElement.style.setProperty('--c','#d6402b');
   tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',b.dataset.i=='4'));
@@ -300,6 +378,7 @@ function renderStores(){
 }
 function render(i){
   if(i===4){renderStores();return}
+  if(i===5){renderShop();return}
   const x=DAYS[i];
   document.documentElement.style.setProperty('--c',x.c);
   tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',b.dataset.i==i));
@@ -324,8 +403,8 @@ function render(i){
   if(x.opts){h+=`<section class="opts"><h3>선택 · ${esc(x.opts.h)}</h3><p>${esc(x.opts.p)}</p>${x.opts.k.map(k=>`<div class="opt"><div><b>${esc(P[k][2])}</b><span>${esc(P[k][3])}</span></div>${btns(k)}</div>`).join('')}</section>`;}
   day.innerHTML=h;
 }
-function fromHash(){if(location.hash==='#stores')return 4;const m=/^#day([1-4])$/.exec(location.hash);if(m)return +m[1]-1;const t=new Date(Date.now()+9*3600e3).toISOString().slice(0,10);const idx=['2026-11-28','2026-11-29','2026-11-30','2026-12-01'].indexOf(t);return idx<0?0:idx}
-tabs.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;history.replaceState(null,'',i===4?'#stores':'#day'+(i+1));render(i);});
+function fromHash(){if(location.hash==='#stores')return 4;if(location.hash==='#shop')return 5;const m=/^#day([1-4])$/.exec(location.hash);if(m)return +m[1]-1;const t=new Date(Date.now()+9*3600e3).toISOString().slice(0,10);const idx=['2026-11-28','2026-11-29','2026-11-30','2026-12-01'].indexOf(t);return idx<0?0:idx}
+tabs.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;history.replaceState(null,'',i===5?'#shop':i===4?'#stores':'#day'+(i+1));render(i);});
 window.addEventListener('hashchange',()=>render(fromHash()));
 render(fromHash());
 
